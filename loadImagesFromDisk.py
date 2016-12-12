@@ -9,14 +9,16 @@ from os import listdir
 def loadImages(images_directory):
     images = []
     labels = []
+    dimensions = []
     for data_dir in listdir(images_directory):
         if not(data_dir.startswith('.')):
-            (image, label) = loadImage(os.path.join(images_directory, data_dir))
+            (image, label, dimension) = loadImage(os.path.join(images_directory, data_dir))
             images.append(image)
             labels.append(label)
-    images = np.array(images)
-    labels = np.array(labels)
-    return (images, labels)
+            dimensions.append(dimension)
+    images = np.concatenate(images)
+    labels = np.concatenate(labels)
+    return (images, labels, dimensions[0])
 
 def loadImage(image_directory):
     imagePaths = []
@@ -40,8 +42,8 @@ def loadImage(image_directory):
 
     #stack images along the 4th dimension so that image[z][y][x] containes the 4 values for the different scan types
     data = np.stack(images, axis=3)
-
-    return (data, labels)
+    dimension = data.shape
+    return (data, labels, dimension)
 
 def showImage(image, sliceNumber=0):
     plt.imshow(image[sliceNumber,: ,:])

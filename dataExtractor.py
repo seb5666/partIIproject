@@ -1,5 +1,5 @@
 import numpy as np
-
+from keras.utils import np_utils
 class DataExtractor():
     
     def __init__(self, slices, labels, dimension):
@@ -24,19 +24,21 @@ class DataExtractor():
 
     def createPatches(self, centers, patchSize, classNumber):
         patches = []
+        
         for center_pixel in centers:
             startRow = center_pixel[1] - int(patchSize[0]/2)
             endRow = center_pixel[1] + int(patchSize[0]/2) + 1
             startCol = center_pixel[2] - int(patchSize[1]/2)
             endCol = center_pixel[2] + int(patchSize[1]/2) + 1
             patches.append(self.slices[center_pixel[0], startRow:endRow, startCol:endCol, :])
+        
         l = np.full(len(patches), classNumber, dtype='float')
         return np.array(patches), l
 
     def filterValidPositions(self, possible_centers, patchSize):
         halfHeight = int(patchSize[0]/2)
         halfWidth = int(patchSize[1]/2)
-        #merge all four conditions into one for performance update
+        #merge all four conditions into one for performance improvement
         possible_centers = possible_centers[possible_centers[:,1] - halfHeight >= 0]
         possible_centers = possible_centers[possible_centers[:,1] + halfHeight + 1 < self.imageY]
         possible_centers = possible_centers[possible_centers[:,2] - halfWidth >= 0]
@@ -51,4 +53,6 @@ class DataExtractor():
             p, l = self.findPatches((33,33), samplesPerClass, classNumber)
             X.append(p)
             y.append(l)
-        return np.concatenate(X), np.concatenate(y)
+        y = np.concatenate(y)
+        y = np_utils.to_categorical(y, int(len(classes)))
+        return np.concatenate(X), y

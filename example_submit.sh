@@ -4,7 +4,7 @@
 #SBATCH -A JAMNIK-SL3
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
-#SBATCH --time=00:03:00
+#SBATCH --time=03:00:00
 
 #! Do not change:
 #SBATCH -p tesla
@@ -37,4 +37,4 @@ source ~/venv/bin/activate
 python --version
 
 echo -e "Start running cifar example\n"
-#! THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python3 ~/multiCNN/cifar100_example_log.py
+THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python3 ~/partIIproject/cnn.py

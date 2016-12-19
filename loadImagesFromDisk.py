@@ -16,9 +16,7 @@ def loadImages(images_directory):
             images.append(image)
             labels.append(label)
             dimensions.append(dimension)
-    images = np.concatenate(images)
-    labels = np.concatenate(labels)
-    return (images, labels, dimensions[0])
+    return (images, labels, dimensions)
 
 def loadImage(image_directory):
     imagePaths = []
@@ -31,11 +29,14 @@ def loadImage(image_directory):
                     observerTruthPath = filePath
                 else:
                     imagePaths.append(filePath)
-    images = np.array([sitk.GetArrayFromImage(sitk.ReadImage(imagePath)) for imagePath in imagePaths])
+            
+    images = np.array([sitk.GetArrayFromImage(sitk.ReadImage(imagePath)) for imagePath in imagePaths]).astype('float32')
     
     if len(images) != 4 or observerTruthPath == "":
         raise Exception("An error occured while reading from", image_directory)
-    print("Read in an image of size", images.shape, "from", image_directory)
+    print("Reading images", imagePaths)
+    print("Reading ground truth", observerTruthPath)
+    #print("Read in an image of size", images.shape, "from", image_directory)
 
     OT = sitk.ReadImage(observerTruthPath)
     labels = sitk.GetArrayFromImage(OT)

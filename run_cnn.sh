@@ -37,4 +37,5 @@ source ~/venv/bin/activate
 python --version
 
 echo -e "Start running cifar example\n"
-THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python3 ~/partIIproject/cnn.py
+THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python3 ~/partIIproject/cnn.py ~/Dataset/BRATS-2/Image_Data/HG
+echo -e "Done\n"

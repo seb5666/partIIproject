@@ -52,7 +52,6 @@ def rotate(k, Xs):
 def dataGenerator():
     datagen = ImageDataGenerator()
     for Xs, ys in datagen.flow(X, y, batch_size=batch_size):
-        print(Xs.shape, ys.shape)
         for i in range(4):
             yield rotate(i, Xs), ys
 

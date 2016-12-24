@@ -51,8 +51,13 @@ pip install --upgrade pip
 pip install --upgrade tensorflow
 pip install --upgrade SimpleITK
 pip install --upgrade keras
+pip install --upgrade matplotlib
+pip install --upgrade scikit-learn
+pip install --upgrade Theano
+pip install --upgrade h5py
 
 echo '---'
 
 #python ~/multiCNN/model/.py
+
 

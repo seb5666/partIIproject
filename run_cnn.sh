@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -J BRATS CNN
-#SBATCH -A JAMNIK-SL3
+#SBATCH -J BRATS_CNN
+#SBATCH -A JAMNIK-SL3-GPU 
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
 #SBATCH --time=03:00:00
@@ -22,8 +22,8 @@ module load intel/fce/12.1.10.319
 module load intel/mkl/10.3.10.319
 module load default-impi
 module load python/3.5.1
+module load cuda/8.0
 module load cudnn/5.0_cuda-8.0
-module load cuda/8.0-RC
 module load intel/cce/11.0.081
 module load intel/fce/11.0.081
 module load lapackpp
@@ -36,6 +36,8 @@ echo -e "Sourcing venv...\n"
 source ~/venv/bin/activate
 python --version
 
-echo -e "Start running cifar example\n"
-THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python3 ~/partIIproject/cnn.py ~/Dataset/BRATS-2/Image_Data/HG
+echo $CUDA_ROOT
+
+echo -e "Start training CNN\n"
+THEANO_FLAGS='mode=FAST_RUN,device=gpu,floatX=float32,cuda.root=/usr/local/Cluster-Apps/cuda/8.0/bin, force_device=True' python3 ~/partIIproject/cnn.py ~/Dataset/BRATS-2/Image_Data/HG/ ~/models/ --model ~/models/latest.h5
 echo -e "Done\n"

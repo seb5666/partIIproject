@@ -19,7 +19,8 @@ parser.add_argument('--model', metavar="model file", type=str, nargs='?', help="
 args = parser.parse_args()
 (images, labels, image_dimensions) = loadImages(args.data_dir)
 
-samples = 100#183396
+#the smallest class consists of 183396 patches, thus we have 5 times that many samples in total
+samples = 183396 * 5
 
 dataExtractor = DataExtractor(images, labels, image_dimensions)
 
@@ -64,4 +65,4 @@ timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
 filePath = args.save_dir + timestamp + ".h5"
 model.save(filePath)
 print("Saved the model to", filePath)
-model.save('../models/latest.h5')
+model.save('./models/latest.h5')

@@ -4,7 +4,7 @@
 #SBATCH -A JAMNIK-SL3-GPU 
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
-#SBATCH --time=03:00:00
+#SBATCH --time=06:00:00
 
 #! Do not change:
 #SBATCH -p tesla

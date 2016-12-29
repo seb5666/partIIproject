@@ -28,7 +28,7 @@ print("Input data shape", X.shape, y.shape)
 if model_file == None:
     print("Creating a new model")
     model = createModel(X[0].shape)
-    model.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
 else:
     print("Loading model from", model_file)
     model = load_model(model_file)

@@ -9,6 +9,7 @@ import time
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
+from keras.optimizers import SGD
 
 args = parse_input()
 data_dir = args.data_dir
@@ -28,7 +29,8 @@ print("Input data shape", X.shape, y.shape)
 if model_file == None:
     print("Creating a new model")
     model = createModel(X[0].shape)
-    model.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
+    sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
 else:
     print("Loading model from", model_file)
     model = load_model(model_file)

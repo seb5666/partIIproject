@@ -6,6 +6,7 @@ import sys
 import os
 from os import listdir
 
+#Load all the training images and the labels that are within a high level directory (/HG/ for ex.)
 def loadImages(images_directory):
     images = []
     labels = []
@@ -45,6 +46,26 @@ def loadImage(image_directory):
     data = np.stack(images, axis=3)
     dimension = data.shape
     return (data, labels, dimension)
+
+#Loads the 4 images but not the Observer Truth
+def loadTestImage(image_directory):
+    imagePaths = []
+    for (dirpath, dirnames, filenames) in os.walk(image_directory):
+        for file in filenames:
+            if file.endswith('.mha'):
+                filePath = os.path.join(dirpath, file)
+                imagePaths.append(filePath)
+
+    images = np.array([sitk.GetArrayFromImage(sitk.ReadImage(imagePath)) for imagePath in imagePaths]).astype('float32')
+
+    if len(images) != 4:
+        raise Exception("An error occured while reading from", image_directory)
+    print("Reading images", imagePaths)
+
+    #stack images along the 4th dimension so that image[z][y][x] containes the 4 values for the different scan types
+    data = np.stack(images, axis=3)
+    dimension = data.shape
+    return (data, dimension)
 
 def showImage(image, sliceNumber=0):
     plt.imshow(image[sliceNumber,: ,:])

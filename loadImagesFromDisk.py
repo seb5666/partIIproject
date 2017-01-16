@@ -54,7 +54,8 @@ def loadTestImage(image_directory):
         for file in filenames:
             if file.endswith('.mha'):
                 filePath = os.path.join(dirpath, file)
-                imagePaths.append(filePath)
+                if "OT" not in file:
+                    imagePaths.append(filePath)
 
     images = np.array([sitk.GetArrayFromImage(sitk.ReadImage(imagePath)) for imagePath in imagePaths]).astype('float32')
 

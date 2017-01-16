@@ -23,7 +23,6 @@ for slice in data:
         slice /= np.max(slice)
 
 segmentation = np.zeros(data.shape[0:3])
-image = sitk.GetImageFromArray(segmentation)
 
 #extract patches + padd for edges?
 halfPatchHeight= int(patchSize[0]/2)
@@ -32,18 +31,22 @@ print(dimension)
 imageHeight = dimension[1]
 imageWidth= dimension[2]
 
-for z in range(0, dimension[0]):
+#for z in range(0, dimension[0]):
+for z in range(72, 85):
     print("Slice", z)
     for y in range(halfPatchHeight, imageHeight - halfPatchHeight):
         print("y", y)
         for x in range(halfPatchWidth, imageWidth - halfPatchWidth):
             patch = data[z,y-halfPatchHeight : y + halfPatchHeight + 1, x - halfPatchWidth: x + halfPatchWidth + 1, :]
-            segmentation[z, y, x] = model.predict_classes(np.array([patch]), batch_size=1, verbose=0)
+            prediction = model.predict_classes(np.array([patch]), batch_size=1, verbose=0)[0]
+            segmentation[z, y, x] = prediction
+            print(prediction, end=', ')
 
 #save segmentation
+image = sitk.GetImageFromArray(segmentation)
 sitk.WriteImage(image, "output.mha")
 
-def showImage(image, sliceNumber=75):
+def showImage(image, sliceNumber=72):
     plt.subplot(221)
     plt.imshow(image[sliceNumber, :, :, 0])
     plt.subplot(222)
@@ -54,7 +57,7 @@ def showImage(image, sliceNumber=75):
     plt.imshow(image[sliceNumber, :, :, 3])
     plt.show()
 
-def showSegmentation(segmentation, sliceNumber=75):
+def showSegmentation(segmentation, sliceNumber=72):
     plt.imshow(segmentation[sliceNumber, :, :])
     plt.show()
 

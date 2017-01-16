@@ -30,12 +30,12 @@ if model_file == None:
     print("Creating a new model")
     model = createModel(X[0].shape)
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 else:
     print("Loading model from", model_file)
     model = load_model(model_file)
     
-batch_size = 32
+batch_size = 256 
 nb_epoch = 1
 verbose = 1
 rotateImages = True
@@ -66,7 +66,7 @@ else:
     model.fit(
         X, 
         y,
-        batch_size = 32,
+        batch_size = batch_size,
         nb_epoch = nb_epoch,
         verbose = verbose
         )

@@ -42,6 +42,8 @@ nb_epoch = 1
 verbose = 1
 rotateImages = True
 
+print("Batch size", batch_size, "rotating images", rotateImages)
+
 def rotate(k, Xs):
     if k == 0:
         return Xs

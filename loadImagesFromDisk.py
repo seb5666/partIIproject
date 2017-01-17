@@ -37,7 +37,7 @@ def loadImage(image_directory):
         raise Exception("An error occured while reading from", image_directory)
     print("Reading images", imagePaths)
     print("Reading ground truth", observerTruthPath)
-    #print("Read in an image of size", images.shape, "from", image_directory)
+    print("Read in an image of size", images.shape, "from", image_directory)
 
     OT = sitk.ReadImage(observerTruthPath)
     labels = sitk.GetArrayFromImage(OT)

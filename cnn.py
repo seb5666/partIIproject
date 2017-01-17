@@ -19,16 +19,18 @@ save_dir = args.save_dir
 (images, labels, image_dimensions) = loadImages(data_dir)
 
 #the smallest class consists of 183396 patches, thus we have 5 times that many samples in total
-samples = 1000 #183396 * 5
+#however, if the last 2 images are used as validaiton images the smallest class consists of only 140332 patches, hence we have to use that number
+training_samples = 1000 #140332 * 5
+validation_samples = 1000 #20035 * 5
 
 dataExtractor = DataExtractor(images, labels, image_dimensions)
-X, y = dataExtractor.extractTrainingData(numSamples = samples)
-print("Input data shape", X.shape, y.shape)
+X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(training_samples = training_samples, validation_samples=validation_samples)
+print("Input data shape", X_train.shape, y_train.shape)
 
 #add if statement checking if weigths for the model have been saved
 if model_file == None:
     print("Creating a new model")
-    model = createModel(X[0].shape)
+    model = createModel(X_train[0].shape)
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 else:
@@ -44,11 +46,11 @@ def rotate(k, Xs):
     if k == 0:
         return Xs
     else:
-        rotated = [np.rot90(X) for X in Xs]
+        rotated = [np.rot90(X, k=k) for X in Xs]
         return np.array(rotated)
 
 #rotate all images by all 4 possible 90 deg angles (0, 90, 180, 270)
-def dataGenerator():
+def dataGenerator(X, y):
     datagen = ImageDataGenerator()
     for Xs, ys in datagen.flow(X, y, batch_size=batch_size):
         for i in range(4):
@@ -57,21 +59,22 @@ def dataGenerator():
 #train the model
 if rotateImages:
     model.fit_generator(
-        dataGenerator(),
-        samples_per_epoch = X.shape[0] * 4,
+        dataGenerator(X_train, y_train),
+        samples_per_epoch = X_train.shape[0] * 4,
         nb_epoch = nb_epoch, 
+        validation_data = dataGenerator(X_val, y_val),
+        nb_val_samples = X_val.shape[0] * 4,
         verbose = verbose
         )
 else:
     model.fit(
-        X, 
-        y,
+        X_train, 
+        y_train,
+        validation_data = (X_val, y_val),
         batch_size = batch_size,
         nb_epoch = nb_epoch,
         verbose = verbose
         )
-
-
 
 #Save the model
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')

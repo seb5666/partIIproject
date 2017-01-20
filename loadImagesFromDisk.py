@@ -11,7 +11,7 @@ def loadImages(images_directory):
     images = []
     labels = []
     dimensions = []
-    for data_dir in listdir(images_directory):
+    for data_dir in sorted(listdir(images_directory)):
         if not(data_dir.startswith('.')):
             (image, label, dimension) = loadImage(os.path.join(images_directory, data_dir))
             images.append(image)

@@ -6,6 +6,16 @@ from keras.utils import np_utils
 class DataExtractor():
     
     def __init__(self, images, labels, dimensions, validation_images=2):
+        
+        # this should potentially be done somewhere else. Also not sure if it should be applied at a slice level or image level..
+        print("Normalizing slices")
+        for image in images:
+            print("Normalizing image", image.shape)
+            for slice in image:
+                if np.max(slice) != 0:
+                    slice /= np.max(slice)
+        print("Done normalizing")
+        
         self.images = images[:-validation_images]
         self.labels = labels[:-validation_images]
 
@@ -16,14 +26,6 @@ class DataExtractor():
         self.dimensions = dimensions[:-validation_images]
         self.validation_dimensions = dimensions[-validation_images:]
 
-        # this should potentially be done somewhere else. Also not sure if it should be applied at a slice level or image level..
-        print("Normalizing slices")
-        for image in images:
-            print("Normalizing image", image.shape)
-            for slice in image:
-                if np.max(slice) != 0:
-                    slice /= np.max(slice)
-        print("Done normalizing")
     
     def findPatches(self, images, labels, dimensions, patchSize, numPatches, classNumber):
         possible_centers = []

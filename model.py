@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Convolution2D, MaxPooling2D
+from keras.layers import Dense, Activation, Flatten, Convolution2D, MaxPooling2D, Dropout
 
 def createModel(input_shape):
     model = Sequential()
@@ -29,9 +29,11 @@ def createModel(input_shape):
 
     model.add(Dense(256))
     model.add(Activation('relu'))
+    model.add(Dropout(0.1))
 
     model.add(Dense(256))
     model.add(Activation('relu'))
+    model.add(Dropout(0.1))
 
     model.add(Dense(5))
     model.add(Activation('softmax'))

@@ -7,13 +7,11 @@ class DataExtractor():
     
     def __init__(self, images, labels, dimensions, validation_images=2):
         
-        # this should potentially be done somewhere else. Also not sure if it should be applied at a slice level or image level..
         print("Normalizing slices")
         for image in images:
             print("Normalizing image", image.shape)
             for slice in image:
-                if np.max(slice) != 0:
-                    slice /= np.max(slice)
+                slice = self.normalize(slice)
         print("Done normalizing")
         
         self.images = images[:-validation_images]
@@ -26,7 +24,17 @@ class DataExtractor():
         self.dimensions = dimensions[:-validation_images]
         self.validation_dimensions = dimensions[-validation_images:]
 
-    
+    def normalize_slice(self, slice):
+        for mode in range(4):
+            slice[:,:,mode] = normalize(slice[:,:,mode])
+        return slice
+
+    def normalize(self, slice):
+        if np.std(slice) == 0:
+            return slice
+        else:
+            return (slice - np.mean(slice)) / np.std(slice)
+
     def findPatches(self, images, labels, dimensions, patchSize, numPatches, classNumber):
         possible_centers = []
 

@@ -19,27 +19,45 @@ def loadImages(images_directory):
             dimensions.append(dimension)
     return (images, labels, dimensions)
 
-def loadImage(image_directory):
-    imagePaths = []
-    observerTruthPath = ""
+def loadImage(image_directory, use_N4Correction = True):
+    ot = ""
+    t1 = ""
+    t1c = ""
+    t2 = ""
+    flair = ""
     for (dirpath, dirnames, filenames) in os.walk(image_directory):
         for file in filenames:
             if file.endswith('.mha'):
                 filePath = os.path.join(dirpath, file)
                 if "OT" in file:
-                    observerTruthPath = filePath
-                else:
-                    imagePaths.append(filePath)
-            
+                    ot = filePath
+                elif "T1c" in file:
+                    if use_N4Correction and "_normalized" in file:
+                        t1c = filePath
+                    if not(use_N4Correction) and "_normalized" not in file:
+                        t1c = filePath
+                elif "T1" in file:
+                    if use_N4Correction and "_normalized" in file:
+                        t1 = filePath
+                    if not(use_N4Correction) and "_normalized" not in file:
+                        t1 = filePath
+                elif "T2" in file:
+                    t2 = filePath
+                elif "Flair" in file:
+                    flair = filePath
+
+    imagePaths = [t1, t1c, t2, flair] 
+
     images = np.array([sitk.GetArrayFromImage(sitk.ReadImage(imagePath)) for imagePath in imagePaths]).astype('float32')
     
-    if len(images) != 4 or observerTruthPath == "":
+    if len(images) != 4 or ot == "":
         raise Exception("An error occured while reading from", image_directory)
+
     print("Reading images", imagePaths)
-    print("Reading ground truth", observerTruthPath)
+    print("Reading ground truth", ot)
     print("Read in an image of size", images.shape, "from", image_directory)
 
-    OT = sitk.ReadImage(observerTruthPath)
+    OT = sitk.ReadImage(ot)
     labels = sitk.GetArrayFromImage(OT)
 
     #stack images along the 4th dimension so that image[z][y][x] containes the 4 values for the different scan types

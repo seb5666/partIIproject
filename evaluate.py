@@ -19,8 +19,8 @@ print("Model shape", model.input_shape)
 
 #normalize data
 for slice in data:
-    if np.max(slice) != 0:
-        slice /= np.max(slice)
+    if np.std(slice) != 0:
+        slice = (slice - np.mean(slice)) / np.std(slice)
 
 segmentation = np.zeros(data.shape[0:3])
 

@@ -13,19 +13,22 @@ from keras.optimizers import SGD
 
 args = parse_input()
 data_dir = args.data_dir
+validation_dir = args.validation_dir
 model_file = args.model
 save_dir = args.save_dir
 
 (images, labels, image_dimensions) = loadImages(data_dir)
+#Todo add N4 correction when images are ready
+(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = False)
 
-#the smallest class consists of 183396 patches, thus we have 5 times that many samples in total
-#however, if the last 2 images are used as validaiton images the smallest class consists of only 140332 patches, hence we have to use that number
-training_samples = 1000 #140332 * 5
-validation_samples = 1000 #20035 * 5
+assert(image_dimensions == [image.shape for image in images])
+assert(val_dimensions == [image.shape for image in val_images])
 
-dataExtractor = DataExtractor(images, labels, image_dimensions)
-X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(training_samples = training_samples, validation_samples=validation_samples)
+dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=True)
+X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData()
+
 print("Input data shape", X_train.shape, y_train.shape)
+print("Validation data shape", X_val.shape, y_val.shape)
 
 #add if statement checking if weigths for the model have been saved
 if model_file == None:

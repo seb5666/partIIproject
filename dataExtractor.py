@@ -5,24 +5,73 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, dimensions, validation_images=2):
-        
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False):
+      
+        #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
+        self.find_all_samples = find_all_samples
+
         print("Normalizing slices")
         for image in images:
-            print("Normalizing image", image.shape)
+            print("Normalizing training image", image.shape)
+            for slice in image:
+                slice = self.normalize(slice)
+        for image in validation_images:
+            print("Normalizing validation image", image.shape)
             for slice in image:
                 slice = self.normalize(slice)
         print("Done normalizing")
         
-        self.images = images[:-validation_images]
-        self.labels = labels[:-validation_images]
+        self.images = images
+        self.labels = labels
 
-        self.validation_images = images[-validation_images:]
-        self.validation_labels = labels[-validation_images:]
+        self.validation_images = validation_images
+        self.validation_labels = validation_labels
 
-        dimensions = np.array(dimensions)
-        self.dimensions = dimensions[:-validation_images]
-        self.validation_dimensions = dimensions[-validation_images:]
+        self.dimensions = np.array([image.shape for image in images])
+        self.validation_dimensions = np.array([image.shape for image in validation_images])
+
+    def extractTrainingData(self, training_samples = 100000, validation_samples = 1000, classes=[0,1,2,3,4]):
+        patch_size = (33,33)
+
+        X_train = []
+        y_train = []
+        X_val = []
+        y_val = []
+
+        if self.find_all_samples:
+            samples_per_class = self.findValidSamplesNumber(self.images, self.labels, self.dimensions, patch_size, classes)
+            validation_samples_per_class = self.findValidSamplesNumber(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, classes)
+            print("Using", samples_per_class, "training samples per class")
+            print("Using", validation_samples_per_class, "validation samples per class")
+        else:
+            samples_per_class = int(training_samples / len(classes))
+            validation_samples_per_class = int(validation_samples / len(classes))
+        
+
+        for class_number in classes:
+            train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
+            X_train.append(train_p)
+            y_train.append(train_l)
+
+            val_p, val_l = self.findPatches(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
+            X_val.append(val_p)
+            y_val.append(val_l)
+
+        y_train = np.concatenate(y_train)
+        y_train = np_utils.to_categorical(y_train, int(len(classes)))
+        X_train = np.concatenate(X_train)
+
+        y_val = np.concatenate(y_val)
+        y_val = np_utils.to_categorical(y_val, int(len(classes)))
+        X_val = np.concatenate(X_val)
+
+        print("training patches shape", X_train.shape)
+        print("training labels shape", y_train.shape)
+
+        print("val patches shape", X_val.shape)
+        print("val labels shape", y_val.shape)
+
+        return X_train, y_train, X_val, y_val
 
     def normalize_slice(self, slice):
         for mode in range(4):
@@ -35,9 +84,16 @@ class DataExtractor():
         else:
             return (slice - np.mean(slice)) / np.std(slice)
 
-    def findPatches(self, images, labels, dimensions, patchSize, numPatches, classNumber):
+    def findValidSamplesNumber(self, images, labels, dimensions, patchSize, classes):
+        min_so_far = None
+        for class_number in classes:
+            patch_coordinates = self.findValidPatchesCoordinates(images, labels, dimensions, patchSize, class_number)
+            if min_so_far == None or min_so_far > len(patch_coordinates):
+                min_so_far = len(patch_coordinates)
+        return min_so_far
+    
+    def findValidPatchesCoordinates(self, images, labels, dimensions, patchSize, classNumber):
         possible_centers = []
-
         #create list of voxel indexes [image, z, y, x] matching the classNumber
         for index, image in enumerate(labels):
             centers = np.argwhere(image == classNumber)
@@ -45,12 +101,17 @@ class DataExtractor():
             indexes = np.full((centers.shape[0], 1), index, dtype="int")
             #append image indexes with center indexes
             possible_centers.append(np.append(indexes, centers, axis = 1))
-
+        
         possible_centers = np.concatenate(possible_centers)
         print("Possible for", classNumber, possible_centers.shape)
         
         valid_centers = self.filterValidPositions(dimensions, possible_centers, patchSize)
         print("Valid for", classNumber, valid_centers.shape)
+
+        return valid_centers
+
+    def findPatches(self, images, labels, dimensions, patchSize, numPatches, classNumber):
+        valid_centers = self.findValidPatchesCoordinates(images, labels, dimensions, patchSize, classNumber) 
         
         #randomly choose numPatches valid center_pixels
         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)
@@ -87,38 +148,3 @@ class DataExtractor():
         possible_centers = possible_centers[possible_centers[:,3] + halfWidth + 1 < dimensions[possible_centers[:,0]][:,2]]
         return possible_centers
 
-    def extractTrainingData(self, training_samples = 100000, validation_samples = 1000, classes=[0,1,2,3,4]):
-        X_train = []
-        y_train = []
-        samples_per_class = int(training_samples / len(classes))
-
-        X_val = []
-        y_val = []
-        validation_samples_per_class = int(validation_samples / len(classes))
-        
-        patch_size = (33,33)
-
-        for class_number in classes:
-            train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
-            X_train.append(train_p)
-            y_train.append(train_l)
-
-            val_p, val_l = self.findPatches(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
-            X_val.append(val_p)
-            y_val.append(val_l)
-
-        y_train = np.concatenate(y_train)
-        y_train = np_utils.to_categorical(y_train, int(len(classes)))
-        X_train = np.concatenate(X_train)
-
-        y_val = np.concatenate(y_val)
-        y_val = np_utils.to_categorical(y_val, int(len(classes)))
-        X_val = np.concatenate(X_val)
-
-        print("training patches shape", X_train.shape)
-        print("training labels shape", y_train.shape)
-
-        print("val patches shape", X_val.shape)
-        print("val labels shape", y_val.shape)
-
-        return X_train, y_train, X_val, y_val

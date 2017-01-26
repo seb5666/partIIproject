@@ -40,7 +40,7 @@ else:
     print("Loading model from", model_file)
     model = load_model(model_file)
     
-batch_size = 256 
+batch_size = 128
 nb_epoch = 1
 verbose = 1
 rotateImages = True

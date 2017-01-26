@@ -30,7 +30,7 @@ class DataExtractor():
         self.dimensions = np.array([image.shape for image in images])
         self.validation_dimensions = np.array([image.shape for image in validation_images])
 
-    def extractTrainingData(self, training_samples = 100000, validation_samples = 1000, classes=[0,1,2,3,4]):
+    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4]):
         patch_size = (33,33)
 
         X_train = []

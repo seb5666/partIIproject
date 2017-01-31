@@ -27,9 +27,9 @@ model_file = args.model
 save_dir = args.save_dir
 
 
-(images, labels, image_dimensions) = loadImages(data_dir, use_n4Correction = use_N4Correction)
+(images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
 #Todo add N4 correction when images are ready
-(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Corretion)
+(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])
 assert(val_dimensions == [image.shape for image in val_images])

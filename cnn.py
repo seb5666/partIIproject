@@ -24,7 +24,7 @@ save_dir = args.save_dir
 assert(image_dimensions == [image.shape for image in images])
 assert(val_dimensions == [image.shape for image in val_images])
 
-dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=True)
+dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=False, tf_ordering=False)
 X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData()
 
 print("Input data shape", X_train.shape, y_train.shape)
@@ -39,11 +39,15 @@ if model_file == None:
 else:
     print("Loading model from", model_file)
     model = load_model(model_file)
-    
+
+model.summary()    
+
 batch_size = 128
 nb_epoch = 1
 verbose = 1
-rotateImages = True
+
+#image rotation doesn't work with Theano ordering!
+rotateImages = False
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 

@@ -5,10 +5,11 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
+        self.tf_ordering = tf_ordering
 
         print("Normalizing slices")
         for image in images:
@@ -133,6 +134,8 @@ class DataExtractor():
             endCol = center_pixel[3] + int(patchSize[1]/2) + 1
             image = images[center_pixel[0]]
             patch = image[center_pixel[1], startRow:endRow, startCol:endCol, :]
+            if not(self.tf_ordering):
+                patch = np.transpose(patch)
             patches.append(patch)
         
         l = np.full(len(patches), classNumber, dtype='int')

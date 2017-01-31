@@ -7,9 +7,15 @@ from inputParser import parse_input
 import numpy as np
 import time
 
+import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras.optimizers import SGD
+
+tf_ordering = True
+if (keras.backend.image_dim_ordering() == "th"):
+    tf_ordering = False
+print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 args = parse_input()
 data_dir = args.data_dir
@@ -17,7 +23,6 @@ validation_dir = args.validation_dir
 model_file = args.model
 save_dir = args.save_dir
 
-tf_ordering = False
 
 (images, labels, image_dimensions) = loadImages(data_dir)
 #Todo add N4 correction when images are ready
@@ -35,7 +40,7 @@ print("Validation data shape", X_val.shape, y_val.shape)
 #add if statement checking if weigths for the model have been saved
 if model_file == None:
     print("Creating a new model")
-    model = createModel(X_train[0].shape)
+    model = createModel(X_train[0].shape, tf_ordering)
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 else:

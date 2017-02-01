@@ -93,24 +93,3 @@ def loadTestImage(image_directory, use_N4Correction = True):
 def showImage(image, sliceNumber=0):
     plt.imshow(image[sliceNumber,: ,:])
     plt.show()
-
-# Load all images
-# dirPath = sys.argv[1]
-
-
-#print("Labels", labels.shape)
-#print("Data", data.shape)
-#slice = 150
-#plt.figure(1)
-#plt.imshow(labels[2,slice,:,:])
-#plt.figure(2)
-#plt.imshow(data[2,slice,:,:,0])
-#plt.figure(3)
-#plt.imshow(data[2,slice,:,:,1])
-#plt.figure(4)
-#plt.imshow(data[2,slice,:,:,2])
-#plt.figure(5)
-#plt.imshow(data[2,slice,:,:,3])
-#plt.show()
-
-

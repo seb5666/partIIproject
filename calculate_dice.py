@@ -1,3 +1,4 @@
+import numpy as np
 import sys
 import SimpleITK as sitk
 
@@ -18,7 +19,8 @@ def calculate_dice_score(segmentation, ground_truth):
     true_positives = 0
     false_positives = 0
     false_negatives = 0
-    positive = [1,2,3,4]
+    true_negatives = 0
+    positive = [1,3,4]
     for slice_number in range(segmentation.shape[0]):
         print("Slice", slice_number)
         for y in range(segmentation.shape[1]):
@@ -31,10 +33,14 @@ def calculate_dice_score(segmentation, ground_truth):
                     false_positives += 1
                 if s_val not in positive and gt_val in positive:
                     false_negatives += 1
+                if s_val not in positive and gt_val not in positive:
+                    true_negatives += 1
 
     print("TP", true_positives)
     print("FP", false_positives)
     print("FN", false_negatives)
+    print("TN", true_negatives)
+    print("Sum", true_positives + false_positives + false_negatives + true_negatives)
 
     DSC = dice_score(true_positives, false_positives, false_negatives)
     print("Dice score", DSC)

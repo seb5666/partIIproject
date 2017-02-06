@@ -50,7 +50,12 @@ class DataExtractor():
         
 
         for class_number in classes:
-            train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
+            train_p = []
+            train_l = []
+            if class_number == 0:
+                train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, 3 * samples_per_class, class_number)
+	    else:
+            	train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
             X_train.append(train_p)
             y_train.append(train_l)
 
@@ -71,6 +76,9 @@ class DataExtractor():
 
         print("val patches shape", X_val.shape)
         print("val labels shape", y_val.shape)
+	
+	X_train, y_train = shuffle(X_train, y_train)
+	X_val, y_val = shuffle(X_val, y_val)
 
         return X_train, y_train, X_val, y_val
 

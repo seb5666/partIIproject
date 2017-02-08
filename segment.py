@@ -57,14 +57,16 @@ for i in range(0, image_dimension[0]):
     print("Patches", patches.shape)
 
     #not sure if batch size matters
-    predictions = []
+    predictions = np.empty((0,))
     i = 0
     while i < patches.shape[0]:
+        print(i)
         if i + batch_size < patches.shape[0]:
             p = patches[i: i + batch_size]
         else:
             p = patches[i:]
-        predictions.append(model.predict_classes(p, batch_size = p.shape[0], verbose=0))
+        preds = model.predict_classes(p, batch_size = p.shape[0], verbose=0)
+        predictions = np.concatenate((predictions, preds))
         i += batch_size
     predictions = np.array(predictions)
 

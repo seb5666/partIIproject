@@ -60,6 +60,7 @@ for i in range(0, image_dimension[0]):
     predictions = np.empty((0,))
     i = 0
     while i < patches.shape[0]:
+        print(i)
         if i + batch_size < patches.shape[0]:
             p = patches[i: i + batch_size]
         else:

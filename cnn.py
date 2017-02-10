@@ -60,32 +60,15 @@ rotateImages = True
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 
-def rotate(k, Xs):
-    if k == 0:
-        return Xs
-    else:
-        rotated = []
-        if tf_ordering: 
-            rotated = [np.rot90(X, k=k) for X in Xs]
-        else:
-            rotated = [np.rot90(X, k=k, axes=(1,2)) for X in Xs]
-        return np.array(rotated)
-
-#rotate all images by all 4 possible 90 deg angles (0, 90, 180, 270)
-def dataGenerator(X, y):
-    datagen = ImageDataGenerator()
-    for Xs, ys in datagen.flow(X, y, batch_size=batch_size):
-        for i in range(4):
-            yield rotate(i, Xs), ys
+trainingDataGenerator = ImageDataGenerator(horizontal_flip=True, vertical_flip=False)
 
 #train the model
 if rotateImages:
     model.fit_generator(
-        dataGenerator(X_train, y_train),
-        samples_per_epoch = X_train.shape[0] * 4,
+        trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
+        samples_per_epoch = X_train.shape[0],
         nb_epoch = nb_epoch, 
-        validation_data = dataGenerator(X_val, y_val),
-        nb_val_samples = X_val.shape[0] * 4,
+        validation_data = (X_val, y_val),
         verbose = verbose
         )
 else:

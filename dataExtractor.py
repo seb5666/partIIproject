@@ -10,18 +10,7 @@ class DataExtractor():
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
         self.tf_ordering = tf_ordering
-
-        print("Normalizing slices")
-        for image in images:
-            print("Normalizing training image", image.shape)
-            for slice in image:
-                slice = self.normalize(slice)
-        for image in validation_images:
-            print("Normalizing validation image", image.shape)
-            for slice in image:
-                slice = self.normalize(slice)
-        print("Done normalizing")
-        
+         
         self.images = images
         self.labels = labels
 
@@ -70,6 +59,11 @@ class DataExtractor():
         y_val = np.concatenate(y_val)
         y_val = np_utils.to_categorical(y_val, int(len(classes)))
         X_val = np.concatenate(X_val)
+        
+        print("Normalising patches")
+        X_train = self.normalize_patches(X_train)
+        X_val = self.normalize_patches(X_val)
+        print("Done normalising patches")
 
         print("training patches shape", X_train.shape)
         print("training labels shape", y_train.shape)
@@ -81,6 +75,24 @@ class DataExtractor():
         X_val, y_val = shuffle(X_val, y_val)
 
         return X_train, y_train, X_val, y_val
+    
+    def normalize_patches(self, patches):
+        if self.tf_ordering:
+            for p_index, patch in enumerate(patches):
+                for channel in range(patch.shape[-1]):
+                    patches[p_index, :, :, channel] = self.normalize_channel(patch[:, :, channel])
+        else:
+            for p_index, patch in enumerate(patches):
+                for channel in range(patch.shape[0]):
+                    patches[p_index, channel, :, :] = self.normalize_channel(patch[channel, :, :])
+        return patches
+    
+    def normalize_channel(self, channel):
+        std = np.std(channel)
+        if std != 0:
+            return (channel - np.mean(channel)) / std
+        else:
+            return channel
 
     def normalize_slice(self, slice):
         for mode in range(4):

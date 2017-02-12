@@ -23,6 +23,9 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 model_path = sys.argv[1]
 image_dir_path = sys.argv[2]
 
+output_file = image_dir_path.split("/")[-1] + "_segmented.mha"
+print("Output: ", output_file)
+
 model = load_model(model_path)
 
 batch_size = 128
@@ -31,17 +34,25 @@ patch_size=(33,33)
 image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = False)
 print("Image dimension", image_dimension)
 
-# normalize images
-def normalize(slice):
-    if np.std(slice) == 0:
-        return slice
-    else:
-        return (slice - np.mean(slice)) / np.std(slice)
-for slice in image:
-    slice = normalize(slice)
+def normalize_patches(patches):
+    if tf_ordering:
+        for p_index, patch in enumerate(patches):
+            for channel in range(patch.shape[-1]):
+                patches[p_index, :, :, channel] = normalize_channel(patch[:, :, channel])
+        else:
+            for p_index, patch in enumerate(patches):
+                for channel in range(patch.shape[0]):
+                    patches[p_index, channel, :, :] = normalize_channel(patch[channel, :, :])
+    return patches
 
-#extract patches + padd for edges?
-half_height= int(patch_size[0]/2)
+def normalize_channel(channel):
+    std = np.std(channel)
+    if std != 0:
+            return (channel - np.mean(channel)) / std
+    else:
+        return channel
+
+half_height = int(patch_size[0]/2)
 half_width = int(patch_size[1]/2)
 
 image = pad(image, ((0,0), (half_height,half_height),(half_width, half_width), (0,0)), mode='constant')
@@ -54,13 +65,13 @@ for i in range(0, image_dimension[0]):
     if not(tf_ordering):
         patches = np.transpose(patches, (0,3,2,1))
     
+    patches = normalize_patches(patches)
     print("Patches", patches.shape)
 
     #not sure if batch size matters
     predictions = np.empty((0,))
     i = 0
     while i < patches.shape[0]:
-        print(i)
         if i + batch_size < patches.shape[0]:
             p = patches[i: i + batch_size]
         else:
@@ -85,7 +96,7 @@ segmentation = np.array(segmentation)
 
 #save segmentation
 image = sitk.GetImageFromArray(segmentation)
-sitk.WriteImage(image, "output.mha")
+sitk.WriteImage(image, output_file)
 
 def showImage(image, sliceNumber=72):
     plt.subplot(221)

@@ -66,5 +66,7 @@ def createModel(input_shape, tf_ordering=True):
     model.add(Dense(5))
     model.add(BatchNormalization(axis=axis))
     model.add(Activation('softmax'))
-    
+   
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
     return model

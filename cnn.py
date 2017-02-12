@@ -1,7 +1,7 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-from model import createModel
+from model2 import createModel
 from inputParser import parse_input
 
 import numpy as np
@@ -44,8 +44,6 @@ print("Validation data shape", X_val.shape, y_val.shape)
 if model_file == None:
     print("Creating a new model")
     model = createModel(X_train[0].shape, tf_ordering)
-    sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 else:
     print("Loading model from", model_file)
     model = load_model(model_file)

@@ -41,5 +41,5 @@ def createModel(input_shape, tf_ordering=True):
     model.add(Activation('softmax'))
 
     sgd = SGD(lr=0.001, decay=0.01, momentum=0.9)
-    model.compile(loss='categorical_crossentropy', optimizer='sgd')
+    model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
     return model

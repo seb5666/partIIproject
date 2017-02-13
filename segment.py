@@ -31,6 +31,8 @@ model = load_model(model_path)
 batch_size = 128
 patch_size=(33,33)
 
+normalize_per_patch = False
+
 image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = False)
 print("Image dimension", image_dimension)
 
@@ -52,6 +54,13 @@ def normalize_channel(channel):
     else:
         return channel
 
+print(image[70, 80:100, 80:100, 0])
+#normalize each channel
+if not normalize_per_patch:
+    for channel in range(4):
+        image[:, :, :, channel] = normalize_channel(image[:, :, :, channel])
+print(image[70, 80:100, 80:100, 0])
+
 half_height = int(patch_size[0]/2)
 half_width = int(patch_size[1]/2)
 
@@ -65,7 +74,9 @@ for i in range(0, image_dimension[0]):
     if not(tf_ordering):
         patches = np.transpose(patches, (0,3,2,1))
     
-    patches = normalize_patches(patches)
+    if normalize_per_patch:
+        patches = normalize_patches(patches)
+
     print("Patches", patches.shape)
 
     #not sure if batch size matters

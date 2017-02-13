@@ -1,7 +1,7 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-from model2 import createModel
+from model import createModel
 from inputParser import parse_input
 
 import numpy as np

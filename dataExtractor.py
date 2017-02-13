@@ -5,20 +5,33 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalize_per_patch = False):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
         self.tf_ordering = tf_ordering
+        self.normalize_per_patch = normalize_per_patch
          
         self.images = images
         self.labels = labels
 
         self.validation_images = validation_images
         self.validation_labels = validation_labels
-
+        
         self.dimensions = np.array([image.shape for image in images])
         self.validation_dimensions = np.array([image.shape for image in validation_images])
+
+        print(self.images[0][70,:,:,0])
+        if not self.normalize_per_patch:
+            print("Normalising each channel")
+            for image in self.images:
+                for channel in range(4):
+                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+            for image in self.validation_images:
+                for channel in range(4):
+                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+            print("Done normalizing")
+        print(self.images[0][70,:,:,0])
 
     def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4]):
         patch_size = (33,33)
@@ -59,11 +72,12 @@ class DataExtractor():
         y_val = np.concatenate(y_val)
         y_val = np_utils.to_categorical(y_val, int(len(classes)))
         X_val = np.concatenate(X_val)
-        
-        print("Normalising patches")
-        X_train = self.normalize_patches(X_train)
-        X_val = self.normalize_patches(X_val)
-        print("Done normalising patches")
+       
+        if self.normalize_per_patch:
+            print("Normalising patches")
+            X_train = self.normalize_patches(X_train)
+            X_val = self.normalize_patches(X_val)
+            print("Done normalising patches")
 
         print("training patches shape", X_train.shape)
         print("training labels shape", y_train.shape)

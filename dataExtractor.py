@@ -19,21 +19,35 @@ class DataExtractor():
         self.validation_labels = validation_labels
         
         self.dimensions = np.array([image.shape for image in images])
+
+        
         self.validation_dimensions = np.array([image.shape for image in validation_images])
-
-        print(self.images[0][70,:,:,0])
+        
         if not self.normalize_per_patch:
+            num_channels = 4
+            epsilon = 0.0001
+           
+            channel_values = np.concatenate([self.images[i][:,:,:,0].reshape((-1)) for i in range(len(images))])
+            print(channel_values.shape)
+            means = [np.mean(np.concatenate([self.images[i][:,:,:,c].reshape((-1)) for i in range(len(images))]).reshape((-1))) for c in range(num_channels)]
+            stds = [np.std(np.concatenate([self.images[i][:,:,:,c].reshape((-1)) for i in range(len(images))]).reshape((-1))) for c in range(num_channels)]
+            print("Channel means on training data", means)
+            print("Channel std on training data", stds)
+            
             print("Normalising each channel")
+            #print(self.images[0][70,70,70,0])
             for image in self.images:
-                for channel in range(4):
-                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+                for i in range(num_channels):
+                    channel = image[:,:,:,i]
+                    image[:,:,:, i] = (channel - means[i]) / (stds[i] + epsilon)
             for image in self.validation_images:
-                for channel in range(4):
-                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+                for i in range(4):
+                    channel = image[:,:,:,i]
+                    image[:,:,:, i] = (channel - means[i]) / (stds[i] + epsilon)
             print("Done normalizing")
-        print(self.images[0][70,:,:,0])
+            #print(self.images[0][70,70,70,0])
 
-    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weight = [1,1,1,1,1]):
+    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weights = [1,1,1,1,1]):
         patch_size = (33,33)
 
         X_train = []

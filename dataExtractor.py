@@ -33,7 +33,7 @@ class DataExtractor():
             print("Done normalizing")
         print(self.images[0][70,:,:,0])
 
-    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4]):
+    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weight = [1,1,1,1,1]):
         patch_size = (33,33)
 
         X_train = []
@@ -54,10 +54,10 @@ class DataExtractor():
         for class_number in classes:
             train_p = []
             train_l = []
-            if class_number == 0:
-                train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, 3 * samples_per_class, class_number)
+            if self.find_all_samples:
+                train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class * samples_weights[class_number], class_number)
             else:
-            	train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
+                train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class, class_number)
             X_train.append(train_p)
             y_train.append(train_l)
 

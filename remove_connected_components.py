@@ -63,6 +63,6 @@ def remove_connected_components(image, threshold = 10000):
                 image[z, y, x] = 0
 
 remove_connected_components(image)
-sitk.WriteImage(sitk.GetImageFromArray(image, output_path))
+sitk.WriteImage(sitk.GetImageFromArray(image), output_path)
 print("Saving result to", output_path)
 

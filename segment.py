@@ -28,10 +28,15 @@ print("Output: ", output_file)
 
 model = load_model(model_path)
 
+normalize_channels = False
+normalize_per_patch = False
+normalize_with_dataset_values = True
+means = [157.3013, 89.12162, 99.944237, 62.016068]
+stds = [360.25491, 232.29645, 216.15245, 138.30151]
+
 batch_size = 128
 patch_size=(33,33)
 
-normalize_per_patch = False
 
 image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = False)
 print("Image dimension", image_dimension)
@@ -54,12 +59,17 @@ def normalize_channel(channel):
     else:
         return channel
 
-print(image[70, 80:100, 80:100, 0])
-#normalize each channel
-if not normalize_per_patch:
+if normalize_channels:
+    print(image[70, 80:100, 80:100, 0])
+    #normalize each channel
+    if not normalize_per_patch:
+        for channel in range(4):
+            image[:, :, :, channel] = normalize_channel(image[:, :, :, channel])
+    print(image[70, 80:100, 80:100, 0])
+
+if normalize_with_dataset_values:
     for channel in range(4):
-        image[:, :, :, channel] = normalize_channel(image[:, :, :, channel])
-print(image[70, 80:100, 80:100, 0])
+        image[:,:,:, channel] = (image[:,:,:,channel] - means[channel]) / std[channel]
 
 half_height = int(patch_size[0]/2)
 half_width = int(patch_size[1]/2)

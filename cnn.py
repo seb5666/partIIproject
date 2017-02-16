@@ -19,6 +19,11 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 
 find_all_samples = True
 use_N4Correction = True
+equiprobable_classes = True
+
+print("Finding all samples", find_all_samples)
+print("Using N4 correction", use_N4Correction)
+print("Using equiprobable classes for training data", equiprobable_classes)
 
 args = parse_input()
 data_dir = args.data_dir
@@ -35,8 +40,12 @@ assert(image_dimensions == [image.shape for image in images])
 assert(val_dimensions == [image.shape for image in val_images])
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
-X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData()
-
+if equiprobable_classes:
+    samples_weights = [1,1,1,1,1]  
+    X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(samples_weights = samples_weights)
+    print("Using weights for data", samples_weights)
+else:
+    X_train, y_train, X_val, y_val = dataExtractor.extractRandomTrainingData()
 print("Input data shape", X_train.shape, y_train.shape)
 print("Validation data shape", X_val.shape, y_val.shape)
 

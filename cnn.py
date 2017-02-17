@@ -1,7 +1,7 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-from model import createModel
+from double_pathway_model import createModel
 from inputParser import parse_input
 
 import numpy as np
@@ -17,9 +17,12 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
+createModel((33,33,4))
+
 find_all_samples = True
 use_N4Correction = True
 equiprobable_classes = True
+double_pathway_architecture = True
 
 print("Finding all samples", find_all_samples)
 print("Using N4 correction", use_N4Correction)
@@ -69,15 +72,28 @@ print("Batch size", batch_size, "rotating images", rotateImages)
 
 trainingDataGenerator = ImageDataGenerator(horizontal_flip=True, vertical_flip=False)
 
+def two_pathway_generator(X_train, y_train, batch_size):
+    for (X, y) in trainingDataGenerator.flow(X_train, y_train, batch_size):
+        yield [X, X], y
+
 #train the model
 if rotateImages:
-    model.fit_generator(
-        trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
-        samples_per_epoch = X_train.shape[0],
-        nb_epoch = nb_epoch, 
-        validation_data = (X_val, y_val),
-        verbose = verbose
-        )
+    if double_pathway_architecture:
+        model.fit_generator(
+            two_pathway_generator(X_train, y_train, batch_size = batch_size),
+            samples_per_epoch = X_train.shape[0],
+            nb_epoch = nb_epoch, 
+            validation_data = ([X_val, X_val], y_val),
+            verbose = verbose
+            )
+    else:
+        model.fit_generator(
+            trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
+            samples_per_epoch = X_train.shape[0],
+            nb_epoch = nb_epoch, 
+            validation_data = (X_val, y_val),
+            verbose = verbose
+            )
 else:
     model.fit(
         X_train, 

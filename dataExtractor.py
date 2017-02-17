@@ -5,13 +5,13 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalize_per_patch = False):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "all_training_patches"):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
         self.tf_ordering = tf_ordering
-        self.normalize_per_patch = normalize_per_patch
-         
+        self.normalization = normalization
+
         self.images = images
         self.labels = labels
 
@@ -23,7 +23,7 @@ class DataExtractor():
         
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
-        if not self.normalize_per_patch:
+        if self.normalization == "dataset":
             num_channels = 4
             epsilon = 0.0001
            
@@ -122,8 +122,28 @@ class DataExtractor():
         y_val = np.concatenate(y_val)
         y_val = np_utils.to_categorical(y_val, int(len(classes)))
         X_val = np.concatenate(X_val)
-       
-        if self.normalize_per_patch:
+        
+        if self.normalization == "all_training_patches":
+            num_channels = 4
+            epsilon = 0.0001
+           
+            means = [np.mean(np.concatenate([X_train[:,:,:,c].reshape((-1))])) for c in range(num_channels)]
+            stds = [np.std(np.concatenate([X_train[:,:,:,c].reshape((-1))])) for c in range(num_channels)]
+            print("Training patches means on training data", means)
+            print("Training patches std on training data", stds)
+            
+            print("Normalising each patch")
+            print(X_train[0,:,:,0])
+            for patch in X_train:
+                for c in range(num_channels):
+                    patch[:,:,c] = (patch[:,:,c] - means[c]) / stds[c]
+            for patch in X_val:
+                for c in range(num_channels):
+                    patch[:,:,c] = (patch[:,:,c] - means[c]) / stds[c]
+            print("Done normalizing")
+            print(X_train[0,:,:,0])
+
+        if self.normalization == "individual_patches":
             print("Normalising patches")
             X_train = self.normalize_patches(X_train)
             X_val = self.normalize_patches(X_val)

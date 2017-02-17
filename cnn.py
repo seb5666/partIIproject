@@ -17,8 +17,6 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-createModel((33,33,4))
-
 find_all_samples = True
 use_N4Correction = True
 equiprobable_classes = True

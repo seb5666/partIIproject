@@ -3,4 +3,4 @@ __pycache__/
 models/
 *.mha
 *.pyc
-model.png
+*.png

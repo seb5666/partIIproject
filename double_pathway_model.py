@@ -4,7 +4,6 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2, l1l2
 from keras.engine.topology import Merge
-from keras.utils.visualize_util import plot
 
 def createModel(input_shape, tf_ordering=True):
     print("Creating new model with input shape", input_shape)

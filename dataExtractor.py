@@ -5,7 +5,7 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "all_training_patches"):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "scan"):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
@@ -23,7 +23,21 @@ class DataExtractor():
         
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
+        if self.normalization == "scan":
+            num_channels = 4
+            print("Normalizing each scan")
+            print(self.images[0][70,:,:,0])
+            for image in self.images:
+                for channel in range(num_channels):
+                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+            for image in self.validation_images:
+                for channel in range(4):
+                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
+            print(self.images[0][70,:,:,0])
+            print("Done normalizing")
+
         if self.normalization == "dataset":
+            print("Normalizing with dataset mean and stds")
             num_channels = 4
             epsilon = 0.0001
            
@@ -124,6 +138,7 @@ class DataExtractor():
         X_val = np.concatenate(X_val)
         
         if self.normalization == "all_training_patches":
+            print("Normalizing with training patches means and stds")
             num_channels = 4
             epsilon = 0.0001
            
@@ -144,6 +159,7 @@ class DataExtractor():
             print(X_train[0,:,:,0])
 
         if self.normalization == "individual_patches":
+            print("Normalizing with individual patches means and stds")
             print("Normalising patches")
             X_train = self.normalize_patches(X_train)
             X_val = self.normalize_patches(X_val)

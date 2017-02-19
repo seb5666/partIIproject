@@ -76,7 +76,6 @@ def remove_connected_components2(image, threshold = 10000):
 
     while not np.all(processed_pixels):
         [z, y, x] = np.argwhere(processed_pixels == 0)[0]
-        print([z,y,x])
         processed_pixels[z, y, x] = 1
         component = [[z, y, x]]
         queue = new_neighbours2([z, y, x], image, processed_pixels)
@@ -87,11 +86,14 @@ def remove_connected_components2(image, threshold = 10000):
             queue.extend(new_neighbours2([z, y, x], image, processed_pixels))
         connected_components.append(component)
 
+    remaining_components = 0
     for component in connected_components:
-        print(len(component))
         if len(component) < threshold:
             for [z, y, x] in component:
                 image[z, y, x] = 0
+        else:
+            remaining_components += 1
+    print("Remaining components of volume >=", threshold, ":", remaining_components)
 
 
 

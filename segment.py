@@ -80,12 +80,30 @@ segmentation = []
 for i in range(0, image_dimension[0]):
     print("Slice", i)
     patches = extract_patches_2d(image[i], patch_size)
-    if not(tf_ordering):
-        patches = np.transpose(patches, (0,3,2,1))
     
     if normalize_per_patch:
         patches = normalize_patches(patches)
 
+    if self.normalization == "all_training_patches":
+        print("Normalizing with training patches means and stds")
+        num_channels = 4
+        epsilon = 0.0001
+   
+        means = [418.99301, 424.04623, 428.94061, 433.69357]
+        stds = [396.99472, 397.67438, 398.29724, 398.90411]
+
+        print("Training patches means on training data", means)
+        print("Training patches std on training data", stds)
+    
+        print("Normalising each patch")
+        for patch in pathches:
+            for c in range(num_channels):
+                patch[:,:,c] = (patch[:,:,c] - means[c]) / stds[c]
+        print("Done normalizing")
+    
+    if not(tf_ordering):
+	patches = np.transpose(patches, (0,3,2,1))
+    
     print("Patches", patches.shape)
 
     #not sure if batch size matters

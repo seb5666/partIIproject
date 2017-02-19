@@ -30,6 +30,7 @@ model = load_model(model_path)
 normalize_channels = False
 normalize_per_patch = False
 normalize_with_dataset_values = True
+normalize_with
 means = [157.3013, 89.12162, 99.944237, 62.016068]
 stds = [360.25491, 232.29645, 216.15245, 138.30151]
 
@@ -84,7 +85,7 @@ for i in range(0, image_dimension[0]):
     if normalize_per_patch:
         patches = normalize_patches(patches)
 
-    if self.normalization == "all_training_patches":
+    if normalize_using_training_patches:
         print("Normalizing with training patches means and stds")
         num_channels = 4
         epsilon = 0.0001
@@ -102,7 +103,7 @@ for i in range(0, image_dimension[0]):
         print("Done normalizing")
     
     if not(tf_ordering):
-	patches = np.transpose(patches, (0,3,2,1))
+        patches = np.transpose(patches, (0,3,2,1))
     
     print("Patches", patches.shape)
 

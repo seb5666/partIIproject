@@ -1,7 +1,8 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-from model import createModel
+#from model import createModel
+from double_pathway_model import createModel
 from inputParser import parse_input
 
 import numpy as np
@@ -20,7 +21,7 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 find_all_samples = True
 use_N4Correction = True
 equiprobable_classes = True
-double_pathway_architecture = False
+double_pathway_architecture = True
 
 batch_size = 128
 nb_epoch = 1

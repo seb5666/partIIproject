@@ -21,9 +21,10 @@ for data_dir in sorted(listdir(images_dir)):
         image = np.array([sitk.GetArrayFromImage(scan) for scan in scans]).astype('float32')
         
         print("Read in an image of size", image.shape, "from", images_dir)
-        print("max before winsorizing", np.max(image))
-        image = scipy.stats.mstats.winsorize(image, limits=0.01)
-        print("max after winsorizing", np.max(image))
+        for scan in image:
+            print("max before winsorizing", np.max(scan))
+            scan = scipy.stats.mstats.winsorize(scan, limits=0.01)
+            print("max after winsorizing", np.max(scan))
 
         t1 = image[0]
         t1c = image[1]

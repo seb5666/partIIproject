@@ -61,7 +61,6 @@ def createModel(input_shape, tf_ordering=True):
     model.add(BatchNormalization(axis=axis))
     model.add(LeakyReLU(alpha))
 
-    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2), border_mode='valid'))
     model.add(Flatten())
 
     #model.add(Dense(256, W_regularizer=l2(l)))

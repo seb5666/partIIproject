@@ -1,7 +1,7 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-from double_pathway_model import createModel
+from model import createModel
 from inputParser import parse_input
 
 import numpy as np
@@ -20,7 +20,13 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 find_all_samples = True
 use_N4Correction = True
 equiprobable_classes = True
-double_pathway_architecture = True
+double_pathway_architecture = False
+
+batch_size = 128
+nb_epoch = 1
+verbose = 1
+
+rotateImages = True
 
 print("Finding all samples", find_all_samples)
 print("Using N4 correction", use_N4Correction)
@@ -34,11 +40,13 @@ save_dir = args.save_dir
 
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
-#Todo add N4 correction when images are ready
 (val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])
 assert(val_dimensions == [image.shape for image in val_images])
+
+print("Loaded %d training images"%len(images))
+print("Loaded %d validation images"%len(val_images))
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
 if equiprobable_classes:
@@ -47,12 +55,12 @@ if equiprobable_classes:
     print("Using weights for data", samples_weights)
 else:
     X_train, y_train, X_val, y_val = dataExtractor.extractRandomTrainingData()
+
 print("Input data shape", X_train.shape, y_train.shape)
 print("Validation data shape", X_val.shape, y_val.shape)
 
-#add if statement checking if weigths for the model have been saved
 if model_file == None:
-    print("Creating a new model")
+    print("Creating new model")
     model = createModel(X_train[0].shape, tf_ordering)
 else:
     print("Loading model from", model_file)
@@ -60,11 +68,6 @@ else:
 
 model.summary()    
 
-batch_size = 128
-nb_epoch = 1
-verbose = 1
-
-rotateImages = True
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 

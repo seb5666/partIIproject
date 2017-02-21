@@ -11,14 +11,14 @@ import time
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
-from keras.optimizers import SGD
+from keras.callbacks import ModelCheckpoint
 
 tf_ordering = True
 if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-find_all_samples = True
+find_all_samples = False
 use_N4Correction = True
 equiprobable_classes = True
 double_pathway_architecture = True
@@ -39,6 +39,8 @@ validation_dir = args.validation_dir
 model_file = args.model
 save_dir = args.save_dir
 
+timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
+filePath = save_dir + timestamp + ".h5"
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
 (val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
@@ -69,8 +71,9 @@ else:
 
 model.summary()    
 
-
 print("Batch size", batch_size, "rotating images", rotateImages)
+
+checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbose=0, save_best_only=True)
 
 trainingDataGenerator = ImageDataGenerator(horizontal_flip=True, vertical_flip=False)
 
@@ -86,6 +89,7 @@ if rotateImages:
             samples_per_epoch = X_train.shape[0],
             nb_epoch = nb_epoch, 
             validation_data = ([X_val, X_val], y_val),
+            callbacks=[checkpointer],
             verbose = verbose
             )
     else:
@@ -94,6 +98,7 @@ if rotateImages:
             samples_per_epoch = X_train.shape[0],
             nb_epoch = nb_epoch, 
             validation_data = (X_val, y_val),
+            callbacks=[checkpointer],
             verbose = verbose
             )
 else:
@@ -103,12 +108,11 @@ else:
         validation_data = (X_val, y_val),
         batch_size = batch_size,
         nb_epoch = nb_epoch,
+        callbacks=[checkpointer],
         verbose = verbose
         )
 
 #Save the model
-timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
-filePath = save_dir + timestamp + ".h5"
 model.save(filePath)
 print("Saved the model to", filePath)
 model.save(save_dir + 'latest.h5')

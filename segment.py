@@ -27,10 +27,9 @@ print("Output: ", output_file)
 
 model = load_model(model_path)
 
-normalize_channels = False
+normalize_channels = True
 normalize_per_patch = False
-normalize_with_dataset_values = True
-normalize_with
+normalize_with_training_values = False
 means = [157.3013, 89.12162, 99.944237, 62.016068]
 stds = [360.25491, 232.29645, 216.15245, 138.30151]
 
@@ -67,10 +66,6 @@ if normalize_channels:
             image[:, :, :, channel] = normalize_channel(image[:, :, :, channel])
     print(image[70, 80:100, 80:100, 0])
 
-if normalize_with_dataset_values:
-    for channel in range(4):
-        image[:,:,:, channel] = (image[:,:,:,channel] - means[channel]) / stds[channel]
-
 half_height = int(patch_size[0]/2)
 half_width = int(patch_size[1]/2)
 
@@ -85,7 +80,7 @@ for i in range(0, image_dimension[0]):
     if normalize_per_patch:
         patches = normalize_patches(patches)
 
-    if normalize_using_training_patches:
+    if normalize_with_training_values:
         print("Normalizing with training patches means and stds")
         num_channels = 4
         epsilon = 0.0001

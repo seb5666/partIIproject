@@ -20,6 +20,8 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
+double_path_architecture = False
+
 model_path = sys.argv[1]
 image_dir_path = sys.argv[2]
 output_file = sys.argv[3] 
@@ -110,7 +112,10 @@ for i in range(0, image_dimension[0]):
             p = patches[i: i + batch_size]
         else:
             p = patches[i:]
-        preds = model.predict_classes(p, batch_size = p.shape[0], verbose=0)
+        if double_path_architecture:
+            preds = model.predict_classes([p,p], batch_size = p.shape[0], verbose=0)
+        else:
+            preds = model.predict_classes(p, batch_size = p.shape[0], verbose=0)
         predictions = np.concatenate((predictions, preds))
         i += batch_size
     predictions = np.array(predictions)

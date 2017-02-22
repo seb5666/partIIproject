@@ -18,9 +18,9 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-find_all_samples = True
+find_all_samples = False
 use_N4Correction = True
-equiprobable_classes = True
+second_training_phase = False
 
 batch_size = 128
 nb_epoch = 1
@@ -30,8 +30,7 @@ rotateImages = True
 
 print("Finding all samples", find_all_samples)
 print("Using N4 correction", use_N4Correction)
-print("Using equiprobable classes for training data", equiprobable_classes)
-
+print("Second training phase with random samples", second_training_phase)
 args = parse_input()
 data_dir = args.data_dir
 validation_dir = args.validation_dir
@@ -51,7 +50,7 @@ print("Loaded %d training images"%len(images))
 print("Loaded %d validation images"%len(val_images))
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
-if equiprobable_classes:
+if not(second_training_phase):
     samples_weights = [1,1,1,1,1]  
     X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(samples_weights = samples_weights)
     print("Using weights for data", samples_weights)
@@ -65,10 +64,16 @@ if model_file == None:
     print("Creating new model")
     model = createModel(X_train[0].shape, tf_ordering)
 else:
-    print("Loading model from", model_file)
-    model = load_model(model_file)
+    if second_training_phase:
+        print("Loading model and setting all but dense layers as non trainable", model_file)
+        model = createModel(X_train[0].shape, tf_ordering, second_training_phase=True)
+        model.load_weights(model_file)
+    else:
+        print("Loading model from", model_file)
+        model = load_model(model_file)
 
 model.summary()    
+print("Trainable weights", model.trainable_weights)
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 

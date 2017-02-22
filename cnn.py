@@ -1,8 +1,8 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from visualise import showSlice
-#from model import createModel
-from double_pathway_model import createModel
+from model import createModel
+#from double_pathway_model import createModel
 from inputParser import parse_input
 
 import numpy as np
@@ -12,16 +12,17 @@ import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras.callbacks import ModelCheckpoint
+from keras.utils import np_utils
 
 tf_ordering = True
 if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-find_all_samples = False
+find_all_samples = True
 use_N4Correction = True
 equiprobable_classes = True
-double_pathway_architecture = True
+double_pathway_architecture = False
 
 batch_size = 128
 nb_epoch = 1

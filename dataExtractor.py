@@ -35,6 +35,12 @@ class DataExtractor():
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
             print(self.images[0][70,:,:,0])
             print("Done normalizing")
+            for image in self.images:
+                print('means', [np.mean(image[:,:,:,c]) for c in range(num_channels)])
+                print('stds', [np.std(image[:,:,:,c]) for c in range(num_channels)])
+            for image in self.validation_images:
+                print('means', [np.mean(image[:,:,:,c]) for c in range(num_channels)])
+                print('stds', [np.std(image[:,:,:,c]) for c in range(num_channels)])
 
         if self.normalization == "dataset":
             print("Normalizing with dataset mean and stds")
@@ -92,7 +98,9 @@ class DataExtractor():
         
         X_train, y_train = shuffle(X_train, y_train)
         X_val, y_val = shuffle(X_val, y_val)
-
+        
+        print("Training classes distribution", [np.count_nonzero(y_train == c) for c in classes])
+        print("Validation classes distribution", [np.count_nonzero(y_val == c) for c in classes])
         y_train = np_utils.to_categorical(y_train, int(len(classes)))
         y_val= np_utils.to_categorical(y_val, int(len(classes)))
 

@@ -7,7 +7,7 @@ from keras.engine.topology import Merge
 
 from metrics import per_class_precision, dice
 
-def createModel(input_shape, tf_ordering=True):
+def createModel(input_shape, tf_ordering=True, second_phase = False):
     print("Creating new model with input shape", input_shape)
 
     axis = -1
@@ -26,26 +26,22 @@ def createModel(input_shape, tf_ordering=True):
     path1.add(BatchNormalization(axis=axis))
     path1.add(Activation('relu'))
     path1.add(MaxPooling2D(pool_size=(2,2), strides=(1,1), border_mode='valid'))
-    print(path1.input_shape)
-    print(path1.output_shape)
    
     path2 = Sequential()
     path2.add(Convolution2D(160, 13, 13, border_mode='valid', input_shape = input_shape, W_regularizer=l1l2(l1 = w_reg, l2 = w_reg)))
     path2.add(BatchNormalization(axis=axis))
     path2.add(Activation('relu'))
-    print(path2.input_shape)
-    print(path2.output_shape)
-
+    
     merge_layer = Sequential()
     merge_layer.add(Merge([path1, path2], mode='concat', concat_axis=axis))
-    print(merge_layer.input_shape)
+
+    if second_phase:
+        merge_layer.trainable = False
 
     classification_layer = Sequential()
     classification_layer.add(merge_layer)
-    print(classification_layer.output_shape)
     classification_layer.add(Convolution2D(5, 21, 21, border_mode='valid', W_regularizer=l1l2(l1 = w_reg, l2 = w_reg)))
     classification_layer.add(BatchNormalization(axis=axis))
-    print(classification_layer.output_shape)
     classification_layer.add(Flatten())
     classification_layer.add(Activation('softmax'))
    

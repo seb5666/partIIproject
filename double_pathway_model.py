@@ -5,6 +5,8 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2, l1l2
 from keras.engine.topology import Merge
 
+from metrics import per_class_precision, dice
+
 def createModel(input_shape, tf_ordering=True):
     print("Creating new model with input shape", input_shape)
 
@@ -47,7 +49,7 @@ def createModel(input_shape, tf_ordering=True):
     classification_layer.add(Flatten())
     classification_layer.add(Activation('softmax'))
    
-    classification_layer.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    classification_layer.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', dice])
     
     path1.summary()
     path2.summary()

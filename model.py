@@ -4,6 +4,8 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2
 
+from metrics import per_class_precision, dice
+
 def createModel(input_shape, tf_ordering=True):
     print("Creating new model with input shape", input_shape)
 
@@ -80,6 +82,6 @@ def createModel(input_shape, tf_ordering=True):
     model.add(BatchNormalization(axis=axis))
     model.add(Activation('softmax'))
    
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', dice])
 
     return model

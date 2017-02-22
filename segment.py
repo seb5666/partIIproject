@@ -12,6 +12,7 @@ from os import listdir
 
 from sklearn.feature_extraction.image import extract_patches_2d
 from skimage.util import pad
+from metrics import dice
 
 assert(len(sys.argv) >= 4)
 
@@ -20,14 +21,14 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-double_path_architecture = False
+double_path_architecture = True
 
 model_path = sys.argv[1]
 image_dir_path = sys.argv[2]
 output_file = sys.argv[3] 
 print("Output: ", output_file)
 
-model = load_model(model_path)
+model = load_model(model_path, custom_objects={'dice': dice})
 
 normalize_channels = True
 normalize_per_patch = False

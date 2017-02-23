@@ -81,7 +81,7 @@ print("Trainable weights", model.trainable_weights)
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 
-checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbose=0, save_best_only=True)
+checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbose=verbose, save_best_only=True)
 
 trainingDataGenerator = ImageDataGenerator(horizontal_flip=rotateImages, vertical_flip=rotateImages)
 

@@ -7,7 +7,6 @@ from keras.regularizers import l2
 from metrics import per_class_precision, dice
 
 def createModel(input_shape, tf_ordering=True, second_training_phase = False):
-    print("Creating new model with input shape", input_shape)
 
     alpha = 0.333
     axis = -1
@@ -16,6 +15,9 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
 
     l = 0.0001
     
+    print("Creating new model with input shape", input_shape)
+    print("Parameters l=%f, alpha=%f"%(l, alpha))
+
     trainable = not(second_training_phase)
     model = Sequential()
 

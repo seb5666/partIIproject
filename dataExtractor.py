@@ -5,12 +5,18 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "scan"):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33)):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
+
         self.tf_ordering = tf_ordering
+
         self.normalization = normalization
+        
+        self.classes = classes
+        
+        self.patch_size = patch_size
 
         self.images = images
         self.labels = labels
@@ -19,10 +25,13 @@ class DataExtractor():
         self.validation_labels = validation_labels
         
         self.dimensions = np.array([image.shape for image in images])
-
-        
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
+        print("Finding valid training patches")
+        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, patch_size, classNumber) for classNumber in self.classes]
+        print("Finding valid validation patches")
+        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, classNumber) for classNumber in self.classes]
+
         if self.normalization == "scan":
             num_channels = 4
             print("Normalizing each scan")
@@ -61,10 +70,10 @@ class DataExtractor():
             print("Done normalizing")
             #print(self.images[0][70,70,70,0])
 
-    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000, classes=[0,1,2,3,4], patch_size = (33,33)):
+    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000):
         training_centers = []
         for classNumber in classes:
-            training_centers.append(self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, patch_size, classNumber))
+            training_centers.append(self.valid_training_patches[classNumber])
         training_centers = np.concatenate(training_centers)
         print("Possible training centers", training_centers.shape)
 
@@ -75,7 +84,7 @@ class DataExtractor():
 
         validation_centers = []
         for classNumber in classes:
-            validation_centers.append(self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, classNumber))
+            validation_centers.append(self.valid_validation_patches[classNumber])
         validation_centers = np.concatenate(validation_centers)
         print("Possible validation centers", validation_centers.shape)
 
@@ -110,8 +119,8 @@ class DataExtractor():
         y_val = []
 
         if self.find_all_samples:
-            samples_per_class = self.findValidSamplesNumber(self.images, self.labels, self.dimensions, patch_size, classes)
-            validation_samples_per_class = self.findValidSamplesNumber(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, classes)
+            samples_per_class = self.findValidSamplesNumber(self.valid_training_patches, self.dimensions, patch_size, classes)
+            validation_samples_per_class = self.findValidSamplesNumber(self.valid_validation_patches, self.validation_dimensions, patch_size, classes)
             print("Using", samples_per_class, "training samples per class")
             print("Using", validation_samples_per_class, "validation samples per class")
         else:
@@ -122,11 +131,11 @@ class DataExtractor():
         for class_number in classes:
             train_p = []
             train_l = []
-            train_p, train_l = self.findPatches(self.images, self.labels, self.dimensions, patch_size, samples_per_class * samples_weights[class_number], class_number)
+            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, patch_size, samples_per_class * samples_weights[class_number], class_number)
             X_train.append(train_p)
             y_train.append(train_l)
 
-            val_p, val_l = self.findPatches(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
+            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
             X_val.append(val_p)
             y_val.append(val_l)
 
@@ -206,10 +215,10 @@ class DataExtractor():
         else:
             return (slice - np.mean(slice)) / np.std(slice)
 
-    def findValidSamplesNumber(self, images, labels, dimensions, patchSize, classes):
+    def findValidSamplesNumber(self, valid_patches, dimensions, patchSize, classes):
         min_so_far = None
         for class_number in classes:
-            patch_coordinates = self.findValidPatchesCoordinates(images, labels, dimensions, patchSize, class_number)
+            patch_coordinates = valid_patches[class_number]
             if min_so_far == None or min_so_far > len(patch_coordinates):
                 min_so_far = len(patch_coordinates)
         return min_so_far
@@ -232,8 +241,8 @@ class DataExtractor():
 
         return valid_centers
 
-    def findPatches(self, images, labels, dimensions, patchSize, numPatches, classNumber):
-        valid_centers = self.findValidPatchesCoordinates(images, labels, dimensions, patchSize, classNumber) 
+    def findPatches(self, valid_patches, images, dimensions, patchSize, numPatches, classNumber):
+        valid_centers = valid_patches[classNumber]
         
         #randomly choose numPatches valid center_pixels
         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)

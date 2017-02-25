@@ -3,6 +3,7 @@ from dataExtractor import DataExtractor
 from visualise import showSlice
 from double_pathway_model import createModel
 from inputParser import parse_input
+from metrics import dice
 import numpy as np
 import time
 
@@ -22,11 +23,11 @@ use_N4Correction = True
 second_training_phase = False
 
 batch_size = 128
-nb_epoch = 1
+nb_epoch = 12
 verbose = 1
 
-training_samples = 4500
-validation_samples = 450
+training_samples = 450000
+validation_samples = 45000
 rotateImages = True
 
 print("Finding all samples", find_all_samples)
@@ -54,11 +55,9 @@ print("Loaded %d validation images"%len(val_images))
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
 if not(second_training_phase):
     samples_weights = [1,1,1,1,1]  
-    X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(samples_weights = samples_weights)
+    X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples=training_samples, validation_samples=validation_samples)
     print("Using weights for data", samples_weights)
 else:
-    training_samples = 450000
-    validation_samples = 45000
     X_train, y_train, X_val, y_val = dataExtractor.extractRandomTrainingData(training_samples = training_samples, validation_samples = validation_samples)
 
 print("Input data shape", X_train.shape, y_train.shape)
@@ -74,7 +73,7 @@ else:
         model.load_weights(model_file)
     else:
         print("Loading model", model_file)
-        model = load_model(model_file)
+        model = load_model(model_file, custom_objects={'dice':dice})
 
 model.summary()    
 print("Trainable weights", model.trainable_weights)

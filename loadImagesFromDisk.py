@@ -57,7 +57,7 @@ def loadScans(image_directory, use_N4Correction = True):
     if len(images) != 4:
         raise Exception("An error occured while reading from", image_directory)
 
-    print("Reading images", imagePaths)
+    #print("Reading images", imagePaths)
 
     return images
 
@@ -74,7 +74,7 @@ def loadGroundTruth(image_directory):
         raise Exception("No ground truth image was found in", image_directory)
 
     OT = sitk.ReadImage(ot)
-    print("Reading ground truth", ot)
+    #print("Reading ground truth", ot)
     return OT
 
     #stack images along the 4th dimension so that image[z][y][x] containes the 4 values for the different scan types

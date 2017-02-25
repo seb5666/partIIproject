@@ -26,21 +26,15 @@ class DataExtractor():
         if self.normalization == "scan":
             num_channels = 4
             print("Normalizing each scan")
-            print(self.images[0][70,:,:,0])
+            #print(self.images[0][70,:,:,0])
             for image in self.images:
                 for channel in range(num_channels):
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
             for image in self.validation_images:
                 for channel in range(4):
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
-            print(self.images[0][70,:,:,0])
+            #print(self.images[0][70,:,:,0])
             print("Done normalizing")
-            for image in self.images:
-                print('means', [np.mean(image[:,:,:,c]) for c in range(num_channels)])
-                print('stds', [np.std(image[:,:,:,c]) for c in range(num_channels)])
-            for image in self.validation_images:
-                print('means', [np.mean(image[:,:,:,c]) for c in range(num_channels)])
-                print('stds', [np.std(image[:,:,:,c]) for c in range(num_channels)])
 
         if self.normalization == "dataset":
             print("Normalizing with dataset mean and stds")
@@ -107,6 +101,8 @@ class DataExtractor():
         return X_train, y_train, X_val, y_val
 
     def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weights = [1,1,1,1,1], patch_size=(33,33)):
+
+        print("Extracting %d training_samples and %d validation_samples"%(training_samples, validation_samples))
 
         X_train = []
         y_train = []

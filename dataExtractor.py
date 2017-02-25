@@ -175,12 +175,6 @@ class DataExtractor():
             X_val = self.normalize_patches(X_val)
             print("Done normalising patches")
 
-        print("training patches shape", X_train.shape)
-        print("training labels shape", y_train.shape)
-
-        print("val patches shape", X_val.shape)
-        print("val labels shape", y_val.shape)
-	
         X_train, y_train = shuffle(X_train, y_train)
         X_val, y_val = shuffle(X_val, y_val)
 
@@ -250,7 +244,6 @@ class DataExtractor():
 
         #extract patches around those center pixels
         p, l = self.createPatches(images, centers, patchSize, classNumber)
-        print("Patches", p.shape)
         # this returns copies of p and l which is not ideal, create a method to do it in place?
         return shuffle(p, l)
     

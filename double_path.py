@@ -6,6 +6,7 @@ from inputParser import parse_input
 from metrics import dice
 import numpy as np
 import time
+import gc
 
 import keras
 from keras.preprocessing.image import ImageDataGenerator
@@ -21,6 +22,7 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 find_all_samples = False
 use_N4Correction = True
 second_training_phase = False
+patch_size = (33,33)
 
 batch_size = 128
 nb_epoch = 12
@@ -53,15 +55,14 @@ print("Loaded %d training images"%len(images))
 print("Loaded %d validation images"%len(val_images))
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
-if not(second_training_phase):
-    samples_weights = [1,1,1,1,1]  
-    X_train, y_train, X_val, y_val = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples=training_samples, validation_samples=validation_samples)
-    print("Using weights for data", samples_weights)
-else:
-    X_train, y_train, X_val, y_val = dataExtractor.extractRandomTrainingData(training_samples = training_samples, validation_samples = validation_samples)
 
-print("Input data shape", X_train.shape, y_train.shape)
-print("Validation data shape", X_val.shape, y_val.shape)
+samples_weights = [1,1,1,1,1]  
+print("Using weights for data", samples_weights)
+
+if tf_ordering:
+    shape = (patch_size[0], patch_size[1], 4)
+else:
+    shape = (4, patch_size[0], patch_size[1])
 
 if model_file == None:
     print("Creating new model")
@@ -88,14 +89,29 @@ def two_pathway_generator(X_train, y_train, batch_size):
     for (X, y) in trainingDataGenerator.flow(X_train, y_train, batch_size):
         yield [X, X], y
 
-model.fit_generator(
-    two_pathway_generator(X_train, y_train, batch_size = batch_size),
-    samples_per_epoch = X_train.shape[0],
-    nb_epoch = nb_epoch, 
-    validation_data = ([X_val, X_val], y_val),
-    callbacks=[checkpointer],
-    verbose = verbose
-    )
+X_val = None
+y_val = None
+for i in range(nb_epochs):
+    gc.collect()
+    print("Epoch {}".format(i))
+
+    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples. patch_size = patch_size)
+
+    if X_val is None:
+        X_val = X_val2
+        y_val = y_val2
+
+    print("Input data shape", X_train.shape, y_train.shape)
+    print("Validation data shape", X_val.shape, y_val.shape)
+
+    model.fit_generator(
+        two_pathway_generator(X_train, y_train, batch_size = batch_size),
+        samples_per_epoch = X_train.shape[0],
+        nb_epoch = 1, 
+        validation_data = ([X_val, X_val], y_val),
+        callbacks=[checkpointer],
+        verbose = verbose
+        )
 
 #Save the model
 model.save(filePath)

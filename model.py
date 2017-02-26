@@ -3,7 +3,7 @@ from keras.layers import Dense, Activation, Flatten, Convolution2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.regularizers import l2
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from metrics import per_class_precision, dice
 
 def createModel(input_shape, tf_ordering=True, second_training_phase = False):
@@ -67,6 +67,7 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
     model.add(Activation('softmax'))
     
     sgd = SGD(lr = 3e-5, decay =0.0, momentum = 0.9, nesterov = True)
-    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy', dice])
+    adam = Adam()
+    model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy', dice])
 
     return model

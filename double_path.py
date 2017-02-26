@@ -25,7 +25,7 @@ second_training_phase = False
 patch_size = (33,33)
 
 batch_size = 128
-nb_epoch = 12
+nb_epochs = 20
 verbose = 1
 
 training_samples = 450000
@@ -66,11 +66,11 @@ else:
 
 if model_file == None:
     print("Creating new model")
-    model  = createModel(X_train[0].shape, tf_ordering)
+    model  = createModel(shape, tf_ordering)
 else:
     if second_training_phase:
         print("Loading model from weights and setting all but last layer as non trainable", model_file)
-        model = createModel(X_train[0].shape, tf_ordering, second_phase = True)
+        model = createModel(shape, tf_ordering, second_phase = True)
         model.load_weights(model_file)
     else:
         print("Loading model", model_file)
@@ -95,7 +95,7 @@ for i in range(nb_epochs):
     gc.collect()
     print("Epoch {}".format(i))
 
-    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples. patch_size = patch_size)
+    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples, patch_size = patch_size)
 
     if X_val is None:
         X_val = X_val2

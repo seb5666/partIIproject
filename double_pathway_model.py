@@ -53,7 +53,7 @@ def createModel(input_shape, tf_ordering=True, second_phase = False):
     classification_layer.add(Activation('softmax'))
     
     sgd = SGD(lr=0.005, decay = 1e-1, momentum=0.5, nesterov=True)
-    adam = Adam(lr=0.0001)
+    adam = Adam(lr=0.0005)
     classification_layer.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy', dice])
     
     path1.summary()

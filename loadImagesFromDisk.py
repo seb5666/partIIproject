@@ -19,7 +19,7 @@ def loadImages(images_directory, use_N4Correction = True):
             image, dimension = stackImage(image)
             label = sitk.GetArrayFromImage(OT)
             
-            print("Read in an image of size", image.shape, "from", images_directory)
+            print("Read in an image of size", image.shape, "from", os.path.join(images_directory, data_dir))
 
             images.append(image)
             labels.append(label)

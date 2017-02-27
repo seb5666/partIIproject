@@ -4,7 +4,7 @@ from visualise import showSlice
 from double_pathway_model import createModel
 from inputParser import parse_input
 from metrics import dice
-import numpy as np
+import numpy as np 
 import time
 import gc
 
@@ -75,6 +75,10 @@ else:
     else:
         print("Loading model", model_file)
         model = load_model(model_file, custom_objects={'dice':dice})
+        print("Setting momentum to 0.9")
+        print(model.optimizer.momentum.get_value())
+        model.optimizer.momentum.set_value(0.9)
+        print(model.optimizer.momentum.get_value())
 
 model.summary()    
 print("Trainable weights", model.trainable_weights)
@@ -94,15 +98,20 @@ y_val = None
 for i in range(nb_epochs):
     gc.collect()
     print("Epoch {}".format(i))
-
-    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples, patch_size = patch_size)
+    print("Learning rate: {}".format(model.optimizer.lr.get_value()))
+    if second_training_phase:
+        X_train, y_train, X_val2, y_val2 = dataExtractor.extractRandomTrainingData(training_samples=training_samples, validation_samples = validation_samples, patch_size = patch_size)
+    else:
+        X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples, patch_size = patch_size)
 
     if X_val is None:
         X_val = X_val2
         y_val = y_val2
 
-    print("Input data shape", X_train.shape, y_train.shape)
-    print("Validation data shape", X_val.shape, y_val.shape)
+    #print("Input data shape", X_train.shape, y_train.shape)
+    #print("Validation data shape", X_val.shape, y_val.shape)
+    
+    #print(model.evaluate([X_val, X_val], y_val, batch_size=batch_size, verbose=1))
 
     model.fit_generator(
         two_pathway_generator(X_train, y_train, batch_size = batch_size),

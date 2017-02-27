@@ -105,8 +105,8 @@ for i in range(nb_epochs):
     print("Validation data shape", X_val.shape, y_val.shape)
     
     lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
-    #print("lr: {}".format(lr))
-    #model.optimizer.lr.set_value(lr)
+    print("lr: {}".format(lr))
+    model.optimizer.lr.set_value(lr)
     print(model.optimizer.lr.get_value())
     model.fit_generator(
         trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),

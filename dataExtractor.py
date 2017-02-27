@@ -70,9 +70,9 @@ class DataExtractor():
             print("Done normalizing")
             #print(self.images[0][70,70,70,0])
 
-    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000):
+    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000, patch_size=(33,33)):
         training_centers = []
-        for classNumber in classes:
+        for classNumber in self.classes:
             training_centers.append(self.valid_training_patches[classNumber])
         training_centers = np.concatenate(training_centers)
         print("Possible training centers", training_centers.shape)
@@ -82,30 +82,31 @@ class DataExtractor():
 
         print("Training centers shape", training_centers.shape)
 
-        validation_centers = []
-        for classNumber in classes:
-            validation_centers.append(self.valid_validation_patches[classNumber])
-        validation_centers = np.concatenate(validation_centers)
-        print("Possible validation centers", validation_centers.shape)
-
-        validation_indexes = np.random.choice(validation_centers.shape[0], validation_samples, replace=False)
-        validation_centers = validation_centers[validation_indexes,:]
-        print("Validation centers shape", validation_centers.shape)
-
         #extract patches around those center pixels
         X_train, y_train = self.extractPatches(self.images, self.labels, training_centers, patch_size)
-        X_val, y_val = self.extractPatches(self.validation_images, self.validation_labels, validation_centers, patch_size)
+       
+        #extract equiprobable validation data
+        X_val, y_val = [], []
+        validation_samples_per_class = int(validation_samples / len(self.classes))
+        for class_number in self.classes:
+            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
+            X_val.append(val_p)
+            y_val.append(val_l)
+
+        y_val = np.concatenate(y_val)
+        X_val = np.concatenate(X_val)
+
         print("Training data shape", X_train.shape, y_train.shape)
         print("Validation data shape", X_val.shape, y_val.shape)
-        # this returns copies of p and l which is not ideal, create a method to do it in place?
         
         X_train, y_train = shuffle(X_train, y_train)
         X_val, y_val = shuffle(X_val, y_val)
         
-        print("Training classes distribution", [np.count_nonzero(y_train == c) for c in classes])
-        print("Validation classes distribution", [np.count_nonzero(y_val == c) for c in classes])
-        y_train = np_utils.to_categorical(y_train, int(len(classes)))
-        y_val= np_utils.to_categorical(y_val, int(len(classes)))
+        print("Training classes distribution", [np.count_nonzero(y_train == c) for c in self.classes])
+        print("Validation classes distribution", [np.count_nonzero(y_val == c) for c in self.classes])
+
+        y_train = np_utils.to_categorical(y_train, int(len(self.classes)))
+        y_val= np_utils.to_categorical(y_val, int(len(self.classes)))
 
         return X_train, y_train, X_val, y_val
 

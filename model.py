@@ -6,6 +6,8 @@ from keras.regularizers import l2
 from keras.optimizers import SGD, Adam
 from metrics import per_class_precision, dice
 
+import numpy as np
+
 def createModel(input_shape, tf_ordering=True, second_training_phase = False):
 
     alpha = 0.333
@@ -66,8 +68,16 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
     #model.add(BatchNormalization(axis=axis))
     model.add(Activation('softmax'))
     
+    #Set bias weights to 0.1 
+    b = 0.1
+    weights = model.get_weights()
+    for i in range(1, len(weights), 2):
+        print("i", weights[i].shape)
+        weights[i] = np.full(weights[i].shape, b)
+    model.set_weights(weights)
+
     sgd = SGD(lr = 3e-5, decay =0.0, momentum = 0.9, nesterov = True)
     adam = Adam()
     model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy', dice])
-
+    
     return model

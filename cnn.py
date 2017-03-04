@@ -47,20 +47,6 @@ save_dir = args.save_dir
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
 filePath = save_dir + timestamp + ".h5"
 
-(images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
-(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
-
-assert(image_dimensions == [image.shape for image in images])
-assert(val_dimensions == [image.shape for image in val_images])
-
-print("Loaded %d training images"%len(images))
-print("Loaded %d validation images"%len(val_images))
-
-dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
-
-samples_weights = [3,1,1,1,1]  
-print("Using weights for data", samples_weights)
-
 if tf_ordering:
     shape = (patch_size[0], patch_size[1], 4)
 else:
@@ -80,6 +66,21 @@ else:
 
 model.summary()    
 print("Trainable weights", model.trainable_weights)
+
+(images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
+(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
+
+assert(image_dimensions == [image.shape for image in images])
+assert(val_dimensions == [image.shape for image in val_images])
+
+print("Loaded %d training images"%len(images))
+print("Loaded %d validation images"%len(val_images))
+
+dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
+
+samples_weights = [3,1,1,1,1]  
+print("Using weights for data", samples_weights)
+
 
 print("Batch size", batch_size, "rotating images", rotateImages)
 

@@ -5,7 +5,7 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33)):
+    def __init__(self, images, labels, validation_images, validation_labels, find_all_samples=False, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1)):
       
         #Set to true if the number of samples to extract from the images should be the maximum possible, i.e the number of patches available for the least represented class
         self.find_all_samples = find_all_samples
@@ -17,6 +17,7 @@ class DataExtractor():
         self.classes = classes
         
         self.patch_size = patch_size
+        self.label_size = label_size
 
         self.images = images
         self.labels = labels
@@ -28,9 +29,9 @@ class DataExtractor():
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
         print("Finding valid training patches")
-        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, patch_size, classNumber) for classNumber in self.classes]
+        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber) for classNumber in self.classes]
         print("Finding valid validation patches")
-        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, patch_size, classNumber) for classNumber in self.classes]
+        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber) for classNumber in self.classes]
 
         if self.normalization == "scan":
             num_channels = 4
@@ -74,7 +75,7 @@ class DataExtractor():
             print("Done normalizing")
             #print(self.images[0][70,70,70,0])
 
-    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000, patch_size=(33,33)):
+    def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000):
         training_centers = []
         for classNumber in self.classes:
             training_centers.append(self.valid_training_patches[classNumber])
@@ -87,13 +88,13 @@ class DataExtractor():
         print("Training centers shape", training_centers.shape)
 
         #extract patches around those center pixels
-        X_train, y_train = self.extractPatches(self.images, self.labels, training_centers, patch_size)
+        X_train, y_train = self.extractPatches(self.images, self.labels, training_centers, self.patch_size)
        
         #extract equiprobable validation data
         X_val, y_val = [], []
         validation_samples_per_class = int(validation_samples / len(self.classes))
         for class_number in self.classes:
-            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
+            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, self.patch_size, validation_samples_per_class, class_number)
             X_val.append(val_p)
             y_val.append(val_l)
 
@@ -114,7 +115,7 @@ class DataExtractor():
 
         return X_train, y_train, X_val, y_val
 
-    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weights = [1,1,1,1,1], patch_size=(33,33)):
+    def extractTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4], samples_weights = [1,1,1,1,1]):
 
         print("Extracting %d training_samples and %d validation_samples, weights"%(training_samples, validation_samples), samples_weights)
 
@@ -124,23 +125,22 @@ class DataExtractor():
         y_val = []
 
         if self.find_all_samples:
-            samples_per_class = self.findValidSamplesNumber(self.valid_training_patches, self.dimensions, patch_size, classes)
-            validation_samples_per_class = self.findValidSamplesNumber(self.valid_validation_patches, self.validation_dimensions, patch_size, classes)
+            samples_per_class = self.findValidSamplesNumber(self.valid_training_patches, self.dimensions, self.patch_size, classes)
+            validation_samples_per_class = self.findValidSamplesNumber(self.valid_validation_patches, self.validation_dimensions, self.patch_size, classes)
             print("Using", samples_per_class, "training samples per class")
             print("Using", validation_samples_per_class, "validation samples per class")
         else:
             samples_per_class = int(training_samples / len(classes))
             validation_samples_per_class = int(validation_samples / len(classes))
         
-
         for class_number in classes:
             train_p = []
             train_l = []
-            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, patch_size, samples_per_class * samples_weights[class_number], class_number)
+            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, self.patch_size, samples_per_class * samples_weights[class_number], class_number)
             X_train.append(train_p)
             y_train.append(train_l)
 
-            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, patch_size, validation_samples_per_class, class_number)
+            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, self.patch_size, validation_samples_per_class, class_number)
             X_val.append(val_p)
             y_val.append(val_l)
 
@@ -185,6 +185,58 @@ class DataExtractor():
 
         return X_train, y_train, X_val, y_val
     
+    def extractLargeTrainingData(self, training_samples = 10000, validation_samples = 1000, classes=[0,1,2,3,4]):
+        
+        print("Extracting %d training_samples and %d validation_samples"%(training_samples, validation_samples))
+        
+        samples_per_class = int(training_samples / len(classes))
+        X_train = []
+        y_train = []
+        for class_number in classes:
+            valid_centers = self.valid_training_patches[class_number]
+    
+            #randomly choose numPatches valid center_pixels
+            indexes = np.random.choice(valid_centers.shape[0], samples_per_class, replace=False)
+            centers = valid_centers[indexes, :]
+        
+            #extract patches around those center pixels
+            p = self.extractPatches(self.images, centers)
+            l = self.extractLabels(self.labels, centers)
+
+            X_train.append(p)
+            y_train.append(l)
+
+        X_train = np.concatenate(X_train)
+        y_train = np.concatenate(y_train)
+        
+        validation_samples_per_class = int(validation_samples / len(classes))
+        X_val = []
+        y_val = []
+        for class_number in classes:
+            valid_centers = self.valid_validation_patches[class_number]
+        
+            #randomly choose numPatches valid center_pixels
+            indexes = np.random.choice(valid_centers.shape[0], validation_samples_per_class, replace=False)
+            centers = valid_centers[indexes, :]
+            
+            #extract patches around those center pixels
+            p = self.extractPatches(self.validation_images, centers)
+            l = self.extractLabels(self.validation_labels, centers)
+            
+            X_val.append(p)
+            y_val.append(l)
+
+        X_val = np.concatenate(X_val)
+        y_val = np.concatenate(y_val)
+    
+        X_train, y_train = shuffle(X_train, y_train)
+        X_val, y_val = shuffle(X_val, y_val)
+
+        print("Training data shape{}, training labels shape {}".format(X_train.shape, y_train.shape))
+        print("Validation data shape{}, validation labels shape {}".format(X_val.shape, y_val.shape))
+
+        return X_train, y_train, X_val, y_val
+
     def normalize_patches(self, patches):
         if self.tf_ordering:
             for p_index, patch in enumerate(patches):
@@ -203,18 +255,7 @@ class DataExtractor():
         else:
             return channel
 
-    def normalize_slice(self, slice):
-        for mode in range(4):
-            slice[:,:,mode] = normalize(slice[:,:,mode])
-        return slice
-
-    def normalize(self, slice):
-        if np.std(slice) == 0:
-            return slice
-        else:
-            return (slice - np.mean(slice)) / np.std(slice)
-
-    def findValidSamplesNumber(self, valid_patches, dimensions, patchSize, classes):
+    def findValidSamplesNumber(self, valid_patches, dimensions, classes):
         min_so_far = None
         for class_number in classes:
             patch_coordinates = valid_patches[class_number]
@@ -222,7 +263,7 @@ class DataExtractor():
                 min_so_far = len(patch_coordinates)
         return min_so_far
     
-    def findValidPatchesCoordinates(self, images, labels, dimensions, patchSize, classNumber):
+    def findValidPatchesCoordinates(self, images, labels, dimensions, classNumber):
         possible_centers = []
         #create list of voxel indexes [image, z, y, x] matching the classNumber
         for index, image in enumerate(labels):
@@ -235,12 +276,12 @@ class DataExtractor():
         possible_centers = np.concatenate(possible_centers)
         print("Possible for", classNumber, possible_centers.shape)
         
-        valid_centers = self.filterValidPositions(dimensions, possible_centers, patchSize)
+        valid_centers = self.filterValidPositions(dimensions, possible_centers)
         print("Valid for", classNumber, valid_centers.shape)
 
         return valid_centers
 
-    def findPatches(self, valid_patches, images, dimensions, patchSize, numPatches, classNumber):
+    def findPatches(self, valid_patches, images, dimensions, numPatches, classNumber):
         valid_centers = valid_patches[classNumber]
         
         #randomly choose numPatches valid center_pixels
@@ -248,35 +289,45 @@ class DataExtractor():
         centers = valid_centers[indexes, :]
 
         #extract patches around those center pixels
-        p, l = self.createPatches(images, centers, patchSize, classNumber)
+        p, l = self.createPatches(images, centers, classNumber)
         # this returns copies of p and l which is not ideal, create a method to do it in place?
         return shuffle(p, l)
     
-    def extractPatches(self, images, ground_truth_images, centers, patchSize):
+    def extractPatches(self, images, centers):
         patches = []
-        labels = []
         for center_pixel in centers:
-            startRow = center_pixel[2] - int(patchSize[0]/2)
-            endRow = center_pixel[2] + int(patchSize[0]/2) + 1
-            startCol = center_pixel[3] - int(patchSize[1]/2)
-            endCol = center_pixel[3] + int(patchSize[1]/2) + 1
+            startRow = center_pixel[2] - int(self.patch_size[0]/2)
+            endRow = center_pixel[2] + int(self.patch_size[0]/2) + (self.patch_size[0] % 2)
+            startCol = center_pixel[3] - int(self.patch_size[1]/2)
+            endCol = center_pixel[3] + int(self.patch_size[1]/2) + (self.patch_size[0] % 2)
             image = images[center_pixel[0]]
             patch = image[center_pixel[1], startRow:endRow, startCol:endCol, :]
             if not(self.tf_ordering):
                 patch = np.transpose(patch)
             patches.append(patch)
-            labels.append(ground_truth_images[center_pixel[0]][center_pixel[1], center_pixel[2], center_pixel[3]])
-        
-        return np.array(patches), np.array(labels)
-
-    def createPatches(self, images, centers, patchSize, classNumber):
-        patches = []
-        
+    
+        return np.array(patches)
+            
+    def extractLabels(self, ground_truth_images, centers):
+        labels = []
         for center_pixel in centers:
-            startRow = center_pixel[2] - int(patchSize[0]/2)
-            endRow = center_pixel[2] + int(patchSize[0]/2) + 1
-            startCol = center_pixel[3] - int(patchSize[1]/2)
-            endCol = center_pixel[3] + int(patchSize[1]/2) + 1
+            startRow = center_pixel[2] - int(self.label_size[0]/2)
+            endRow = center_pixel[2] + int(self.label_size[0]/2) + (self.label_size[0] % 2)
+            startCol = center_pixel[3] - int(self.label_size[1]/2)
+            endCol = center_pixel[3] + int(self.label_size[1]/2) + (self.label_size[0] % 2)
+            image = ground_truth_images[center_pixel[0]]
+            #Using to categorical flattens the 2d array in a 1d array
+            label = np_utils.to_categorical(image[center_pixel[1], startRow:endRow, startCol:endCol], len(self.classes))
+            labels.append(label)
+        return np.array(labels)
+
+    def createPatches(self, images, centers, classNumber):
+        patches = []
+        for center_pixel in centers:
+            startRow = center_pixel[2] - int(self.patch_size[0]/2)
+            endRow = center_pixel[2] + int(self.patch_size[0]/2) + 1
+            startCol = center_pixel[3] - int(self.patch_size[1]/2)
+            endCol = center_pixel[3] + int(self.patch_size[1]/2) + 1
             image = images[center_pixel[0]]
             patch = image[center_pixel[1], startRow:endRow, startCol:endCol, :]
             if not(self.tf_ordering):
@@ -286,9 +337,9 @@ class DataExtractor():
         l = np.full(len(patches), classNumber, dtype='int')
         return np.array(patches), l
 
-    def filterValidPositions(self, dimensions, possible_centers, patchSize):
-        halfHeight = int(patchSize[0]/2)
-        halfWidth = int(patchSize[1]/2)
+    def filterValidPositions(self, dimensions, possible_centers, ):
+        halfHeight = int(self.patch_size[0]/2)
+        halfWidth = int(self.patch_size[1]/2)
         #merge all four conditions into one for performance improvement
         possible_centers = possible_centers[possible_centers[:,2] - halfHeight >= 0]
         possible_centers = possible_centers[possible_centers[:,2] + halfHeight + 1 < dimensions[possible_centers[:,0]][:,1]]

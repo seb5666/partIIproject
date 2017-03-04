@@ -54,7 +54,7 @@ assert(val_dimensions == [image.shape for image in val_images])
 print("Loaded %d training images"%len(images))
 print("Loaded %d validation images"%len(val_images))
 
-dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
+dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering, patch_size = patch_size)
 
 samples_weights = [1,1,1,1,1]  
 print("Using weights for data", samples_weights)
@@ -100,9 +100,9 @@ for i in range(nb_epochs):
     print("Epoch {}".format(i))
     
     if second_training_phase:
-        X_train, y_train, X_val2, y_val2 = dataExtractor.extractRandomTrainingData(training_samples=training_samples, validation_samples = validation_samples, patch_size = patch_size)
+        X_train, y_train, X_val2, y_val2 = dataExtractor.extractRandomTrainingData(training_samples=training_samples, validation_samples = validation_samples)
     else:
-        X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples, patch_size = patch_size)
+        X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples = validation_samples)
 
     if X_val is None:
         X_val = X_val2

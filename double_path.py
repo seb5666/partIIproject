@@ -25,10 +25,10 @@ second_training_phase = False
 patch_size = (33,33)
 
 batch_size = 128
-nb_epochs = 20
+nb_epochs = 1
 verbose = 1
 
-training_samples = 450000
+training_samples = 200000
 validation_samples = 45000
 rotateImages = True
 
@@ -76,9 +76,8 @@ else:
         print("Loading model", model_file)
         model = load_model(model_file, custom_objects={'dice':dice})
         print("Setting momentum to 0.9")
-        print(model.optimizer.momentum.get_value())
         model.optimizer.momentum.set_value(0.9)
-        print(model.optimizer.momentum.get_value())
+        print("Model momentum", model.optimizer.momentum.get_value())
 
 model.summary()    
 print("Trainable weights", model.trainable_weights)
@@ -96,9 +95,10 @@ def two_pathway_generator(X_train, y_train, batch_size):
 X_val = None
 y_val = None
 for i in range(nb_epochs):
-    gc.collect()
+    gc.collect() #import to avoud memory errors..
+    
     print("Epoch {}".format(i))
-    print("Learning rate: {}".format(model.optimizer.lr.get_value()))
+    
     if second_training_phase:
         X_train, y_train, X_val2, y_val2 = dataExtractor.extractRandomTrainingData(training_samples=training_samples, validation_samples = validation_samples, patch_size = patch_size)
     else:
@@ -107,11 +107,6 @@ for i in range(nb_epochs):
     if X_val is None:
         X_val = X_val2
         y_val = y_val2
-
-    #print("Input data shape", X_train.shape, y_train.shape)
-    #print("Validation data shape", X_val.shape, y_val.shape)
-    
-    #print(model.evaluate([X_val, X_val], y_val, batch_size=batch_size, verbose=1))
 
     model.fit_generator(
         two_pathway_generator(X_train, y_train, batch_size = batch_size),

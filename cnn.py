@@ -21,7 +21,7 @@ if (keras.backend.image_dim_ordering() == "th"):
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 find_all_samples = False
-use_N4Correction = True
+use_N4Correction = False
 second_training_phase = False
 
 training_samples = 450000
@@ -30,7 +30,7 @@ validation_samples = 45000
 patch_size = (33,33)
 
 batch_size = 128
-nb_epoch = 10
+nb_epoch = 20
 verbose = 1
 
 rotateImages = True
@@ -78,7 +78,7 @@ print("Loaded %d validation images"%len(val_images))
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering)
 
-samples_weights = [3,1,1,1,1]  
+samples_weights = [1,1,1,1,1]  
 print("Using weights for data", samples_weights)
 
 
@@ -106,9 +106,8 @@ for i in range(nb_epochs):
     print("Validation data shape", X_val.shape, y_val.shape)
     
     lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
-    print("lr: {}".format(lr))
     model.optimizer.lr.set_value(lr)
-    print(model.optimizer.lr.get_value())
+    print("lr: {}".format(model.optimizer.lr.get_value()))
     model.fit_generator(
         trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
         samples_per_epoch = X_train.shape[0],

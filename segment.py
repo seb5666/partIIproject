@@ -21,7 +21,7 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-double_path_architecture = True
+double_path_architecture = False
 
 model_path = sys.argv[1]
 image_dir_path = sys.argv[2]
@@ -55,6 +55,10 @@ def normalize_patches(patches):
     return patches
 
 def normalize_channel(channel):
+    channel_max = np.max(channel)
+    channel_min = np.min(channel)
+    channel = (channel - channel_min) / (channel_max - channel_min)
+    print("Transforming input to range [0,1]")
     std = np.std(channel)
     if std != 0:
             return (channel - np.mean(channel)) / std
@@ -77,7 +81,7 @@ print("New dimension", image.shape)
 
 segmentation = []
 for i in range(0, image_dimension[0]):
-    print("Slice", i)
+    #print("Slice", i)
     patches = extract_patches_2d(image[i], patch_size)
     
     if normalize_per_patch:

@@ -41,20 +41,27 @@ for data_dir in sorted(listdir(images_dir)):
             print("Creating directory", save_dir)
             os.makedirs(save_dir)
 
-        sitk.WriteImage(t2, save_dir + "/T2_processed.mha")
-        sitk.WriteImage(flair, save_dir + "/Flair_processed.mha")
-        
         #Apply N4 normalization
         print("Applying N4 to T1 and T1c images in ", data_dir)
         
         t1_mask = sitk.OtsuThreshold(t1, 0, 1, 200)
         t1 = N4_corrector.Execute(t1, t1_mask)
         print("Corrected t1")
-        sitk.WriteImage(t1, save_dir + "/T1_processed.mha")
+        sitk.WriteImage(t1, save_dir + "/T1_normalized.mha")
 
         t1c_mask = sitk.OtsuThreshold(t1c, 0, 1, 200)
         t1c = N4_corrector.Execute(t1c, t1c_mask)
         print("Corrected t1c")
-        sitk.WriteImage(t1c, save_dir + "/T1c_processed.mha")
+        sitk.WriteImage(t1c, save_dir + "/T1c_normalized.mha")
 
+        #t2_mask = sitk.OtsuThreshold(t2, 0, 1, 200)
+        #t2 = N4_corrector.Execute(t2, t2_mask)
+        #print("Corrected t2")
+        sitk.WriteImage(t2, save_dir + "/T2_normalized.mha")
+        
+        #flair_mask = sitk.OtsuThreshold(flair, 0, 1, 200)
+        #flair = N4_corrector.Execute(flair, flair_mask)
+        #print("Corrected flair")
+        sitk.WriteImage(flair, save_dir + "/Flair_normalized.mha")
+        
 

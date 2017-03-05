@@ -21,7 +21,7 @@ if (keras.backend.image_dim_ordering() == "th"):
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 find_all_samples = False
-use_N4Correction = False
+use_N4Correction = True
 second_training_phase = False
 
 training_samples = 450000

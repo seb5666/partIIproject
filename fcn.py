@@ -12,7 +12,6 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
-from keras.utils.visualize_util import plot
 
 import gc
 
@@ -30,7 +29,7 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 use_N4Correction = False
 print("Using N4 correction", use_N4Correction)
 
-training_samples = 450000
+training_samples = 150000
 validation_samples = 45000
 
 patch_size = (64,64)
@@ -38,7 +37,7 @@ label_size = (8,8)
 
 print("Patch size {}, label size: {}".format(patch_size, label_size))
 batch_size = 128
-nb_epoch = 20
+nb_epoch = 40
 verbose = 1
 
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
@@ -98,8 +97,8 @@ for i in range(nb_epochs):
     print("Input data shape", X_train.shape, y_train.shape)
     print("Validation data shape", X_val.shape, y_val.shape)
     
-    lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
-    model.optimizer.lr.set_value(lr)
+    #lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
+    ##model.optimizer.lr.set_value(lr)
     print("lr: {}".format(model.optimizer.lr.get_value()))
     model.fit_generator(
         trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),

@@ -136,11 +136,11 @@ class DataExtractor():
         for class_number in classes:
             train_p = []
             train_l = []
-            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, self.patch_size, samples_per_class * samples_weights[class_number], class_number)
+            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class * samples_weights[class_number], class_number)
             X_train.append(train_p)
             y_train.append(train_l)
 
-            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, self.patch_size, validation_samples_per_class, class_number)
+            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, validation_samples_per_class, class_number)
             X_val.append(val_p)
             y_val.append(val_l)
 

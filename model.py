@@ -25,29 +25,29 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
     model = Sequential()
 
     model.add(Convolution2D(64, 3, 3, border_mode='same', init=init, input_shape = input_shape, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha))
 
     model.add(Convolution2D(64, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha))
 
     model.add(Convolution2D(64, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha))
 
     model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2), border_mode='valid', trainable=trainable))
 
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha, trainable=trainable))
 
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha))
 
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-    model.add(BatchNormalization(axis=axis, trainable=trainable))
+    #model.add(BatchNormalization(axis=axis, trainable=trainable))
     model.add(LeakyReLU(alpha))
     
     model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2), border_mode='valid', trainable=trainable))
@@ -55,12 +55,12 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
     model.add(Flatten())
 
     model.add(Dense(256, init=init, W_regularizer=l2(l)))
-    model.add(BatchNormalization(axis=axis))
+    #model.add(BatchNormalization(axis=axis))
     model.add(LeakyReLU(alpha))
     model.add(Dropout(0.1))
 
     model.add(Dense(256, init=init, W_regularizer=l2(l)))
-    model.add(BatchNormalization(axis=axis))
+    #model.add(BatchNormalization(axis=axis))
     model.add(LeakyReLU(alpha))
     model.add(Dropout(0.1))
 

@@ -16,18 +16,21 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
 
     l = 0
     init = 'glorot_normal'
+    p = 0.1
     trainable = True
     print("Creating new fully convolutional model with input shape", input_shape)
-    print("Parameters l=%f, alpha=%f, init=%s"%(l, alpha, init))
+    print("Parameters l=%f, alpha=%f, init=%s, p=%f"%(l, alpha, init, p))
 
     model = Sequential()
 
     model.add(Convolution2D(64, 3, 3, border_mode='same', init=init, input_shape = input_shape, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
     
     model.add(Convolution2D(64, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
 
 
@@ -35,30 +38,35 @@ def createModel(input_shape, tf_ordering=True, second_training_phase = False):
 
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
     
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
 
     model.add(Convolution2D(128, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
 
     model.add(MaxPooling2D(pool_size=(2,2), border_mode='valid', trainable=trainable))
 
     model.add(Convolution2D(256, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
     
     model.add(Convolution2D(256, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
     model.add(BatchNormalization(axis=axis, trainable=trainable))
+    model.add(Dropout(p))
     model.add(LeakyReLU(alpha))
     
     model.add(MaxPooling2D(pool_size=(2,2), border_mode='valid', trainable=trainable))
 
     model.add(Convolution2D(5, 3, 3, border_mode='same', init=init, W_regularizer=l2(l), trainable=trainable))
-
+    
     model.add(Reshape((5, 64)))
     model.add(Permute((2,1)))
     model.add(Activation('softmax'))

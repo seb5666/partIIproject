@@ -21,7 +21,7 @@ if (keras.backend.image_dim_ordering() == "th"):
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 find_all_samples = False
-use_N4Correction = True
+use_N4Correction = False
 second_training_phase = False
 
 training_samples = 450000
@@ -30,7 +30,6 @@ validation_samples = 45000
 patch_size = (33,33)
 
 batch_size = 128
-nb_epoch = 20
 verbose = 1
 
 rotateImages = True

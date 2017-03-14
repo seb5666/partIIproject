@@ -29,15 +29,15 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 use_N4Correction = False
 print("Using N4 correction", use_N4Correction)
 
-training_samples = 150000
-validation_samples = 45000
+training_samples = 100000
+validation_samples = 20000
 
 patch_size = (64,64)
 label_size = (8,8)
 
 print("Patch size {}, label size: {}".format(patch_size, label_size))
 batch_size = 128
-nb_epoch = 40
+nb_epochs = 40
 verbose = 1
 
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
@@ -75,9 +75,8 @@ checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbo
 
 trainingDataGenerator = ImageDataGenerator()
 
-nb_epochs = 20
-start_rate = 3e-5
-end_rate = 3e-7
+start_rate = 3e-3
+end_rate = 3e-5
 
 to_categorical = np.vectorize(np_utils.to_categorical)
 
@@ -98,8 +97,8 @@ for i in range(nb_epochs):
     print("Validation data shape", X_val.shape, y_val.shape)
     
     #lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
-    ##model.optimizer.lr.set_value(lr)
-    print("lr: {}".format(model.optimizer.lr.get_value()))
+    #model.optimizer.lr.set_value(lr)
+    #print("lr: {}".format(model.optimizer.lr.get_value()))
     model.fit_generator(
         trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
         samples_per_epoch = X_train.shape[0],

@@ -83,8 +83,7 @@ print("New dimension", image.shape)
 
 segmentation = []
 for i in range(0, image_dimension[0]):
-    print("Slice", i)
-    i = 80
+    #print(i, end='')
     slice = image[i]
 #    slice = np.arange(180 * 158).reshape((180, 158))
 #    slice = pad(slice, ((height_padding,height_padding),(width_padding, width_padding)), mode='constant')
@@ -100,13 +99,11 @@ for i in range(0, image_dimension[0]):
     patches = np.array(patches)
     if not(tf_ordering):
         patches = np.transpose(patches, (0,3,2,1))
-    print("Patches shape", patches.shape)
 
     #not sure if batch size matters
     predictions = []
     i = 0
     while i < patches.shape[0]:
-        print(i)
         if i + batch_size < patches.shape[0]:
             p = patches[i: i + batch_size]
         else:
@@ -117,33 +114,27 @@ for i in range(0, image_dimension[0]):
 
     predictions = np.array(predictions)
 
-    print("Predictions1", predictions.shape)
     height_in_patches = math.ceil(image_dimension[1]/label_size[0])
     width_in_patches = math.ceil(image_dimension[2]/label_size[1])
     predictions = predictions.reshape((height_in_patches, width_in_patches, label_size[0], label_size[1]))
-    print("Predictions2", predictions.shape)
 #    predictions = np.transpose(predictions, (0,1,3,2))
     predictions = np.concatenate(predictions, axis = 1)
-    print("Predictions3", predictions.shape)
     predictions = np.concatenate(predictions, axis = 1)
-    print("Predictions4", predictions.shape)
 
-    print("Predictions5", predictions.shape)
+    #print("Predictions5", predictions.shape)
 
     #transform linear array back into image
     slice = predictions[:image_dimension[1], :image_dimension[2]]
 
-    print("Slice dimension", slice.shape)
-    plt.imshow(slice)
-    plt.show()
-    exit()
+    #print("Slice dimension", slice.shape)
     segmentation.append(slice)
 
 segmentation = np.array(segmentation)
-
 #save segmentation
 image = sitk.GetImageFromArray(segmentation)
+image = sitk.Cast(image, sitk.sitkUInt8)
 sitk.WriteImage(image, output_file)
+print("Saved image")
 
 def showImage(image, sliceNumber=72):
     plt.subplot(221)

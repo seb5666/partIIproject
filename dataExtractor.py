@@ -88,30 +88,39 @@ class DataExtractor():
         print("Training centers shape", training_centers.shape)
 
         #extract patches around those center pixels
-        X_train, y_train = self.extractPatches(self.images, self.labels, training_centers, self.patch_size)
+        X_train = self.extractPatches(self.images, training_centers)
+        y_train, count = self.extractLabels(self.labels, training_centers)
+        print("Training data distribution {}".format(count))
        
         #extract equiprobable validation data
-        X_val, y_val = [], []
         validation_samples_per_class = int(validation_samples / len(self.classes))
+        X_val = []
+        y_val = []
+        validation_class_distribution = []
         for class_number in self.classes:
-            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, self.patch_size, validation_samples_per_class, class_number)
-            X_val.append(val_p)
-            y_val.append(val_l)
-
-        y_val = np.concatenate(y_val)
+            valid_centers = self.valid_validation_patches[class_number]
+        
+            #randomly choose numPatches valid center_pixels
+            indexes = np.random.choice(valid_centers.shape[0], validation_samples_per_class, replace=False)
+            centers = valid_centers[indexes, :]
+            
+            #extract patches around those center pixels
+            p = self.extractPatches(self.validation_images, centers)
+            l, count = self.extractLabels(self.validation_labels, centers)
+            print(l.shape)
+            
+            X_val.append(p)
+            y_val.append(l)
+            validation_class_distribution.append(count)
+        
         X_val = np.concatenate(X_val)
-
-        print("Training data shape", X_train.shape, y_train.shape)
-        print("Validation data shape", X_val.shape, y_val.shape)
+        y_val = np.concatenate(y_val)
+        
+        print("Training data shape{}, training labels shape {}".format(X_train.shape, y_train.shape))
+        print("Validation data shape{}, validation labels shape {}".format(X_val.shape, y_val.shape))
         
         X_train, y_train = shuffle(X_train, y_train)
         X_val, y_val = shuffle(X_val, y_val)
-        
-        print("Training classes distribution", [np.count_nonzero(y_train == c) for c in self.classes])
-        print("Validation classes distribution", [np.count_nonzero(y_val == c) for c in self.classes])
-
-        y_train = np_utils.to_categorical(y_train, int(len(self.classes)))
-        y_val= np_utils.to_categorical(y_val, int(len(self.classes)))
 
         return X_train, y_train, X_val, y_val
 
@@ -332,7 +341,7 @@ class DataExtractor():
             #Using to categorical flattens the 2d array in a 1d array
             count = [count[i] + np.count_nonzero(patch == self.classes[i]) for i in range(len(self.classes))]
             label = np_utils.to_categorical(patch, len(self.classes))
-            labels.append(label)
+            labels.append(label[0])
         return np.array(labels), np.array(count)
 
     def createPatches(self, images, centers, classNumber):

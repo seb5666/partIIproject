@@ -21,15 +21,15 @@ print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_o
 
 find_all_samples = False
 use_N4Correction = True
-second_training_phase = False
+second_training_phase = True
 patch_size = (33,33)
 
 batch_size = 128
 nb_epochs = 1
 verbose = 1
 
-training_samples = 200000
-validation_samples = 45000
+training_samples = 1000
+validation_samples = 100
 rotateImages = True
 
 print("Finding all samples", find_all_samples)
@@ -55,7 +55,8 @@ print("Loaded %d training images"%len(images))
 print("Loaded %d validation images"%len(val_images))
 
 dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering, patch_size = patch_size)
-
+patches_per_class = [len(patches) for patches in dataExtractor.valid_training_patches]
+print("VALID PATCHES PER CLASS", [p/sum(patches_per_class) for p in patches_per_class])
 samples_weights = [1,1,1,1,1]  
 print("Using weights for data", samples_weights)
 
@@ -66,7 +67,7 @@ else:
 
 if model_file == None:
     print("Creating new model")
-    model  = createModel(shape, tf_ordering)
+    model  = createModel(shape, tf_ordering, second_phase = second_training_phase)
 else:
     if second_training_phase:
         print("Loading model from weights and setting all but last layer as non trainable", model_file)

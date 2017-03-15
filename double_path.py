@@ -14,7 +14,7 @@ from keras.models import load_model
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
 
-tf_ordering = True
+tf_ordering = True 
 if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
@@ -87,11 +87,7 @@ print("Batch size", batch_size, "rotating images", rotateImages)
 
 checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbose=verbose, save_best_only=True)
 
-trainingDataGenerator = ImageDataGenerator(horizontal_flip=rotateImages, vertical_flip=rotateImages)
-
-def two_pathway_generator(X_train, y_train, batch_size):
-    for (X, y) in trainingDataGenerator.flow(X_train, y_train, batch_size):
-        yield [X, X], y
+training_data_generator = ImageDataGenerator(horizontal_flip=rotateImages, vertical_flip=rotateImages)
 
 X_val = None
 y_val = None
@@ -110,10 +106,10 @@ for i in range(nb_epochs):
         y_val = y_val2
 
     model.fit_generator(
-        two_pathway_generator(X_train, y_train, batch_size = batch_size),
+        training_data_generator.flow(X_train, y_train, batch_size = batch_size),
         samples_per_epoch = X_train.shape[0],
-        nb_epoch = 1, 
-        validation_data = ([X_val, X_val], y_val),
+        epochs = 1, 
+        validation_data = (X_val, y_val),
         callbacks=[checkpointer],
         verbose = verbose
         )

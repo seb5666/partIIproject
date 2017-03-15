@@ -1,12 +1,11 @@
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Convolution2D, MaxPooling2D, Dropout
-from keras.layers.normalization import BatchNormalization
-from keras.layers.advanced_activations import LeakyReLU
-from keras.regularizers import l2, l1l2
-from keras.engine.topology import Merge
+from keras.models import Model
+from keras.layers import Input
+from keras.layers.convolutional import Conv2D
+from keras.layers.core import Activation, Flatten, Dropout
+from keras.layers.pooling import MaxPooling2D
+from keras.regularizers import l1_l2
 from keras.optimizers import SGD, Adam
-
-from metrics import per_class_precision, dice
+import keras
 
 def createModel(input_shape, tf_ordering=True, second_phase = False):
     print("Creating new model with input shape", input_shape)
@@ -19,42 +18,35 @@ def createModel(input_shape, tf_ordering=True, second_phase = False):
     
     print("Hyperparameters: alpha=%f, w_reg=%f"%(alpha, w_reg))
     
-    path1 = Sequential()
-    path1.add(Convolution2D(64, 7, 7, border_mode='valid', input_shape = input_shape, W_regularizer=l1l2(l1 = w_reg, l2 = w_reg), trainable=not(second_phase)))
-    #path1.add(BatchNormalization(axis=axis))
-    path1.add(Dropout(alpha))
-    path1.add(Activation('relu'))
-    path1.add(MaxPooling2D(pool_size=(4,4), strides=(1,1), border_mode='valid'))
+    inputs = Input(shape=input_shape)
 
-    path1.add(Convolution2D(64, 3, 3, border_mode='valid', W_regularizer=l1l2(l1 = w_reg, l2 = w_reg), trainable=not(second_phase)))
-    #path1.add(BatchNormalization(axis=axis))
-    path1.add(Dropout(alpha))
-    path1.add(Activation('relu'))
-    path1.add(MaxPooling2D(pool_size=(2,2), strides=(1,1), border_mode='valid'))
+    p1 = Conv2D(filters=64, kernel_size=(7,7), padding='valid', kernel_regularizer=l1_l2(l1=w_reg, l2=w_reg), trainable=not(second_phase))(inputs)
+    p1 = Dropout(alpha)(p1)
+    p1 = Activation('relu')(p1)
+    p1 = MaxPooling2D(pool_size=(4,4), strides=(1,1), border_mode='valid')(p1)
+    
+    p1 = Conv2D(filters=64, kernel_size=(3,3), padding='valid', kernel_regularizer=l1_l2(l1=w_reg, l2=w_reg), trainable=not(second_phase))(p1)
+    p1 = Dropout(alpha)(p1)
+    p1 = Activation('relu')(p1)
+    p1 = MaxPooling2D(pool_size=(2,2), strides=(1,1), border_mode='valid')(p1)
    
-    path2 = Sequential()
-    path2.add(Convolution2D(160, 13, 13, border_mode='valid', input_shape = input_shape, W_regularizer=l1l2(l1 = w_reg, l2 = w_reg), trainable=not(second_phase)))
-    #path2.add(BatchNormalization(axis=axis))
-    path2.add(Dropout(alpha))
-    path2.add(Activation('relu'))
+    p2 = Conv2D(filters=160, kernel_size=(13,13), padding='valid', kernel_regularizer=l1_l2(l1=w_reg, l2=w_reg), trainable=not(second_phase))(inputs)
+    p2 = Dropout(alpha)(p2)
+    p2 = Activation('relu')(p2)
     
-    merge_layer = Sequential()
-    merge_layer.add(Merge([path1, path2], mode='concat', concat_axis=axis))
+    merged = keras.layers.concatenate([p1, p2], axis=axis)
 
-    classification_layer = Sequential()
-    classification_layer.add(merge_layer)
-    classification_layer.add(Convolution2D(5, 21, 21, border_mode='valid', W_regularizer=l1l2(l1 = w_reg, l2 = w_reg)))
-    #classification_layer.add(BatchNormalization(axis=axis))
-    classification_layer.add(Dropout(alpha))
-    classification_layer.add(Flatten())
-    classification_layer.add(Activation('softmax'))
-    
+    predictions = Conv2D(filters=5, kernel_size=(21,21), padding='valid', kernel_regularizer=l1_l2(l1=w_reg, l2=w_reg))(merged)
+    predictions = Dropout(alpha)(predictions)
+    predictions = Flatten()(predictions)
+    predictions = Activation('softmax')(predictions)
+   
+    model = Model(inputs=inputs, outputs=predictions)
+
     sgd = SGD(lr=0.005, decay = 1e-1, momentum=0.5, nesterov=True)
     adam = Adam(lr=0.0005)
-    classification_layer.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy', dice])
+    model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
     
-    path1.summary()
-    path2.summary()
-    classification_layer.summary()
-    
-    return classification_layer
+    model.summary()
+
+    return model

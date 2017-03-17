@@ -16,6 +16,8 @@ from sklearn.feature_extraction.image import extract_patches_2d
 from skimage.util import pad
 from metrics import dice
 
+from keras.utils import np_utils 
+
 assert(len(sys.argv) >= 4)
 
 model_path = sys.argv[1]
@@ -32,7 +34,7 @@ if (keras.backend.image_dim_ordering() == "th"):
 
 print("Image ordering: {}".format(keras.backend.image_dim_ordering()))
 
-use_N4Correction = False
+use_N4Correction = True
 print("Using N4 correction: {}".format(use_N4Correction))
 
 batch_size = 128
@@ -108,7 +110,11 @@ for i in range(0, image_dimension[0]):
             p = patches[i: i + batch_size]
         else:
             p = patches[i:]
-        preds = model.predict_classes(p, batch_size = p.shape[0], verbose=0)
+        #preds = model.predict_classes(p, batch_size = p.shape[0], verbose=0)
+        preds_prob = model.predict(p, batch_size = p.shape[0], verbose=0)
+        #print(preds_prob.shape)
+        preds = np.array([np_utils.probas_to_classes(probas) for probas in preds_prob])
+        #print(preds.shape)
         predictions.extend(preds)
         i += batch_size
 

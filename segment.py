@@ -21,7 +21,7 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-double_path_architecture = False
+double_path_architecture = True
 
 model_path = sys.argv[1]
 image_dir_path = sys.argv[2]
@@ -58,7 +58,7 @@ def normalize_channel(channel):
     channel_max = np.max(channel)
     channel_min = np.min(channel)
     channel = (channel - channel_min) / (channel_max - channel_min)
-    print("Transforming input to range [0,1]")
+    #print("Transforming input to range [0,1]")
     std = np.std(channel)
     if std != 0:
             return (channel - np.mean(channel)) / std
@@ -66,12 +66,12 @@ def normalize_channel(channel):
         return channel
 
 if normalize_channels:
-    print(image[70, 80:100, 80:100, 0])
+    #print(image[70, 80:100, 80:100, 0])
     #normalize each channel
     if not normalize_per_patch:
         for channel in range(4):
             image[:, :, :, channel] = normalize_channel(image[:, :, :, channel])
-    print(image[70, 80:100, 80:100, 0])
+    #print(image[70, 80:100, 80:100, 0])
 
 half_height = int(patch_size[0]/2)
 half_width = int(patch_size[1]/2)
@@ -107,7 +107,7 @@ for i in range(0, image_dimension[0]):
     if not(tf_ordering):
         patches = np.transpose(patches, (0,3,2,1))
     
-    print("Patches", patches.shape)
+    #print("Patches", patches.shape)
 
     #not sure if batch size matters
     predictions = np.empty((0,))
@@ -140,6 +140,7 @@ segmentation = np.array(segmentation)
 
 #save segmentation
 image = sitk.GetImageFromArray(segmentation)
+image = sitk.Cast(image, sitk.sitkUInt8)
 sitk.WriteImage(image, output_file)
 
 def showImage(image, sliceNumber=72):

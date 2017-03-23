@@ -37,21 +37,28 @@ def loadScans(image_directory, use_N4Correction = True):
             if file.endswith('.mha'):
                 filePath = os.path.join(dirpath, file)
                 if "T1c" in file:
-                    if use_N4Correction and "_normalized" in file:
+                    if use_N4Correction and ("_normalized" in file or "_corrected" in file):
                         t1c = filePath
                     if not(use_N4Correction) and "_normalized" not in file:
                         t1c = filePath
                 elif "T1" in file:
-                    if use_N4Correction and "_normalized" in file:
+                    if use_N4Correction and ("_normalized" in file or "_corrected" in file):
                         t1 = filePath
                     if not(use_N4Correction) and "_normalized" not in file:
                         t1 = filePath
                 elif "T2" in file:
-                    t2 = filePath
+                    if use_N4Correction and ("_normalized" in file or "_corrected" in file):
+                        t2 = filePath
+                    if not(use_N4Correction) and "_normalized" not in file:
+                        t2 = filePath
                 elif "Flair" in file:
-                    flair = filePath
+                    if use_N4Correction and ("_normalized" in file or "_corrected" in file):
+                        flair = filePath
+                    if not(use_N4Correction) and "_normalized" not in file:
+                        flair = filePath
 
     imagePaths = [t1, t1c, t2, flair] 
+    print(imagePaths)
     images = [sitk.ReadImage(imagePath) for imagePath in imagePaths]
 
     if len(images) != 4:

@@ -1,6 +1,5 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
-from visualise import showSlice
 from model import createModel
 from inputParser import parse_input
 from metrics import dice 
@@ -21,7 +20,7 @@ if (keras.backend.image_dim_ordering() == "th"):
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 find_all_samples = False
-use_N4Correction = False
+use_N4Correction = True
 second_training_phase = False
 
 training_samples = 450000
@@ -120,3 +119,4 @@ for i in range(nb_epochs):
 model.save(filePath)
 print("Saved the model to", filePath)
 model.save(save_dir + 'latest.h5')
+from visualise import showSlice

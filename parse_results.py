@@ -3,6 +3,9 @@
 import sys
 import csv
 import re
+import math
+import numpy as np
+import matplotlib.pyplot as plt
 
 assert(len(sys.argv) == 2)
 
@@ -58,13 +61,43 @@ for k in submissions:
             regions[region] = row
         submissions[k][scan] = regions
 
-dice = {}
-#compute average dice scores for submissions
+dice_mean = {}
+dice_std = {}
+#compute average dice scores and std for submissions
 for sub in submissions:
     dice_scores = {1:0, 2:0, 3:0}
     for scan in submissions[sub]:
         for region in submissions[sub][scan]:
             dice_scores[region] += float(submissions[sub][scan][region][headers.index('Dice')]) / 10
-    dice[sub] = dice_scores
-for sub in dice:
-    print("Sub {:2}, {:0.3f} {:0.3f} {:0.3f}".format(sub, dice[sub][1], dice[sub][2], dice[sub][3]))
+    dice_mean[sub] = dice_scores
+
+    scores = {1:[], 2:[], 3:[]}
+    scans = submissions[sub]
+    for scan in scans:
+        for region in scans[scan]:
+            scores[region].append(float(scans[scan][region][headers.index('Dice')]))
+    std = {1:0, 2:0, 3:0}
+    for region in scores:
+        variance = 0
+        for score in scores[region]:
+            variance += (score - dice_mean[sub][region])**2
+        std[region] = math.sqrt(variance / 9)
+    dice_std[sub] = std
+
+#report values
+for sub in dice_mean:
+    mean = dice_mean[sub]
+    std = dice_std[sub]
+    print("Sub {:2}, {:0.3f}±{:0.3f} {:0.3f}±{:0.3f} {:0.3f}±{:0.3f}" .format(sub, mean[1], std[1], mean[2], std[2], mean[3], std[3]))
+
+def plot_results(sub):
+    scores = [[],[],[]]
+    for scan in submissions[sub]:
+        for k, region in enumerate(submissions[sub][scan]):
+           scores[k].append(float(submissions[sub][scan][region][headers.index('Dice')]))
+    print(scores)
+    plt.boxplot(scores, sym='')
+    plt.xticks([1, 2, 3], ['Complete', 'Core', 'Enhancing'])
+    plt.title("Box plot showing the submission results for the challenge dataset")
+    plt.show()
+plot_results(32)

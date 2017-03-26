@@ -84,7 +84,14 @@ print("Batch size", batch_size, "rotating images", rotateImages)
 
 checkpointer = ModelCheckpoint(filepath=save_dir + timestamp + "_best.h5", verbose=verbose, save_best_only=True)
 
-trainingDataGenerator = ImageDataGenerator(horizontal_flip=rotateImages, vertical_flip=rotateImages)
+def dataGenerator(X, y):
+    datagen = ImageDataGenerator()
+    for Xs, ys in datagen.flow(X, y, batch_size=batch_size):
+        if tf_ordering:
+            rotated = [np.rot90(X, k = np.random.randint(0,4)) for X in Xs]
+        else:
+            rotated = [np.rot90(X, k = np.random.randint(0,4), axes=(1,2)) for X in Xs]
+        yield np.array(rotated), ys
 
 nb_epochs = 20
 start_rate = 3e-5
@@ -107,7 +114,7 @@ for i in range(nb_epochs):
     model.optimizer.lr.set_value(lr)
     print("lr: {}".format(model.optimizer.lr.get_value()))
     model.fit_generator(
-        trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
+        dataGenerator(X_train, y_train),
         samples_per_epoch = X_train.shape[0],
         nb_epoch = 1, 
         validation_data = (X_val, y_val),

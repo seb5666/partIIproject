@@ -126,4 +126,3 @@ for i in range(nb_epochs):
 model.save(filePath)
 print("Saved the model to", filePath)
 model.save(save_dir + 'latest.h5')
-from visualise import showSlice

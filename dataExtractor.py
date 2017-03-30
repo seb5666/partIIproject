@@ -370,12 +370,19 @@ class DataExtractor():
         valid_centers = self.filterValidPositions(dimensions, possible_centers)
         print("Valid for", classNumber, valid_centers.shape)
 
+        if classNumber == 0:
+            valid_centers = valid_centers[valid_centers[:,1] % 3 == 0]
+            valid_centers = valid_centers[valid_centers[:,2] % 3 == 0]
+            valid_centers = valid_centers[valid_centers[:,3] % 3 == 0]
+            print("Valid for after removing_neighbours", classNumber, valid_centers.shape)
+                
         return valid_centers
 
     def findPatches(self, valid_patches, images, dimensions, numPatches, classNumber):
         valid_centers = valid_patches[classNumber]
         
         #randomly choose numPatches valid center_pixels
+        print("Choosing patches for class {}".format(classNumber))
         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)
         centers = valid_centers[indexes, :]
 
@@ -439,5 +446,6 @@ class DataExtractor():
         possible_centers = possible_centers[possible_centers[:,2] + halfHeight + 1 < dimensions[possible_centers[:,0]][:,1]]
         possible_centers = possible_centers[possible_centers[:,3] - halfWidth >= 0]
         possible_centers = possible_centers[possible_centers[:,3] + halfWidth + 1 < dimensions[possible_centers[:,0]][:,2]]
+        
         return possible_centers
 

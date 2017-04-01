@@ -29,9 +29,26 @@ class DataExtractor():
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
         print("Finding valid training patches")
-        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber) for classNumber in self.classes]
+#        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber, self.patch_size) for classNumber in self.classes]
+        self.valid_training_patches = self.find_patches_close_to_tumour(self.images, self.labels)
+
+#        for classNumber in self.classes:
+#            print("Class " , classNumber)
+#            print(self.valid_training_patches[classNumber].shape)
+#            print(self.valid_training_patches_close_to_tumours[classNumber].shape)
+#            for i in range(4):
+#                print("Dimension = ", i)
+#                bincount = np.bincount(self.valid_training_patches[classNumber][:,i])
+#                bincount2 = np.bincount(self.valid_training_patches_close_to_tumours[classNumber][:,i])
+#                print(bincount.shape)
+#                print(bincount)
+#                print(bincount2.shape)
+#                print(bincount2)
+
         print("Finding valid validation patches")
-        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber) for classNumber in self.classes]
+#        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber, self.patch_size) for classNumber in self.classes]
+        self.valid_validation_patches = self.find_patches_close_to_tumour(self.validation_images, self.validation_labels)
+
 
         if self.normalization == "scan":
             num_channels = 4
@@ -74,7 +91,52 @@ class DataExtractor():
                     image[:,:,:, i] = (channel - means[i]) / (stds[i] + epsilon)
             print("Done normalizing")
             #print(self.images[0][70,70,70,0])
+    
+    def find_patches_close_to_tumour(self, images, labels):
+        #Some analysis save to remove
+        tumour_mins = []
+        tumour_maxs = []
+        for label in labels:
+            mins = [np.min(np.argwhere(label > 0)[:, i]) for i in range(3)]
+            maxs = [np.max(np.argwhere(label > 0)[:, i]) + 1 for i in range(3)]
+            mins[1] = max(int(self.patch_size[0]/2), mins[1])
+            mins[2] = max(int(self.patch_size[1]/2), mins[2])
+            maxs[1] = min(label.shape[1] - int(self.patch_size[0]/2) - 1, maxs[1])
+            maxs[2] = min(label.shape[2] - int(self.patch_size[1]/2) - 1, maxs[2])
+            tumour_mins.append(mins)
+            tumour_maxs.append(maxs)
+        
+        cut_images = []
+        cut_labels = []
+        for image, label, mins, maxs in zip(images, labels, tumour_mins, tumour_maxs):
+            cut_image = image[mins[0]: maxs[0], mins[1]:maxs[1], mins[2]:maxs[2]]
+            cut_label = label[mins[0]: maxs[0], mins[1]:maxs[1], mins[2]:maxs[2]]
+            cut_images.append(cut_image)
+            cut_labels.append(cut_label)
+        
+        cut_dimensions = np.array([image.shape for image in cut_images])
 
+        valid_training_patches = []
+        
+        for classNumber in self.classes:
+            possible_centers = []
+            #create list of voxel indexes [image, z, y, x] matching the classNumber
+            for index, image in enumerate(cut_labels):
+                centers = np.argwhere(image == classNumber)
+                #add offset to match the actual position of the entire image
+                centers += tumour_mins[index]
+                
+                #create image indexes
+                indexes_column = np.full((centers.shape[0], 1), index, dtype="int")
+                #append image indexes with center indexes
+                possible_centers.append(np.append(indexes_column, centers, axis = 1))
+            
+            valid_centers = np.concatenate(possible_centers)
+            print("Valid for", classNumber, valid_centers.shape)
+            
+            valid_training_patches.append(valid_centers)
+        return valid_training_patches
+            
     def extractRandomTrainingData(self, training_samples = 9000, validation_samples=1000):
         training_centers = []
         for classNumber in self.classes:
@@ -354,7 +416,7 @@ class DataExtractor():
                 min_so_far = len(patch_coordinates)
         return min_so_far
     
-    def findValidPatchesCoordinates(self, images, labels, dimensions, classNumber):
+    def findValidPatchesCoordinates(self, images, labels, dimensions, classNumber, patch_size):
         possible_centers = []
         #create list of voxel indexes [image, z, y, x] matching the classNumber
         for index, image in enumerate(labels):
@@ -367,14 +429,14 @@ class DataExtractor():
         possible_centers = np.concatenate(possible_centers)
         print("Possible for", classNumber, possible_centers.shape)
         
-        valid_centers = self.filterValidPositions(dimensions, possible_centers)
+        valid_centers = self.filterValidPositions(dimensions, possible_centers, patch_size)
         print("Valid for", classNumber, valid_centers.shape)
 
-        if classNumber == 0:
-            valid_centers = valid_centers[valid_centers[:,1] % 3 == 0]
-            valid_centers = valid_centers[valid_centers[:,2] % 3 == 0]
-            valid_centers = valid_centers[valid_centers[:,3] % 3 == 0]
-            print("Valid for after removing_neighbours", classNumber, valid_centers.shape)
+        #if classNumber == 0:
+        #    valid_centers = valid_centers[valid_centers[:,1] % 3 == 0]
+        #    valid_centers = valid_centers[valid_centers[:,2] % 3 == 0]
+        #    valid_centers = valid_centers[valid_centers[:,3] % 3 == 0]
+        #    print("Valid for after removing_neighbours", classNumber, valid_centers.shape)
                 
         return valid_centers
 
@@ -382,10 +444,9 @@ class DataExtractor():
         valid_centers = valid_patches[classNumber]
         
         #randomly choose numPatches valid center_pixels
-        print("Choosing patches for class {}".format(classNumber))
         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)
         centers = valid_centers[indexes, :]
-
+        
         #extract patches around those center pixels
         p, l = self.createPatches(images, centers, classNumber)
         # this returns copies of p and l which is not ideal, create a method to do it in place?
@@ -438,9 +499,11 @@ class DataExtractor():
         l = np.full(len(patches), classNumber, dtype='int')
         return np.array(patches), l
 
-    def filterValidPositions(self, dimensions, possible_centers, ):
-        halfHeight = int(self.patch_size[0]/2)
-        halfWidth = int(self.patch_size[1]/2)
+    def filterValidPositions(self, dimensions, possible_centers, patch_size):
+        if patch_size == (0,0):
+            return possible_centers
+        halfHeight = int(patch_size[0]/2)
+        halfWidth = int(patch_size[1]/2)
         #merge all four conditions into one for performance improvement
         possible_centers = possible_centers[possible_centers[:,2] - halfHeight >= 0]
         possible_centers = possible_centers[possible_centers[:,2] + halfHeight + 1 < dimensions[possible_centers[:,0]][:,1]]

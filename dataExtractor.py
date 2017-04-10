@@ -29,8 +29,8 @@ class DataExtractor():
         self.validation_dimensions = np.array([image.shape for image in validation_images])
         
         print("Finding valid training patches")
-#        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber, self.patch_size) for classNumber in self.classes]
-        self.valid_training_patches = self.find_patches_close_to_tumour(self.images, self.labels)
+        self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber, self.patch_size) for classNumber in self.classes]
+        self.valid_training_patches_close_to_tumours = self.find_patches_close_to_tumour(self.images, self.labels)
 
 #        for classNumber in self.classes:
 #            print("Class " , classNumber)
@@ -207,7 +207,27 @@ class DataExtractor():
         for class_number in classes:
             train_p = []
             train_l = []
-            train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class * samples_weights[class_number], class_number)
+            
+            if class_number == 0:
+                #choose a fraction close to tumours only
+                train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class * samples_weights[class_number], class_number)
+                train_p2, train_l2 = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class * samples_weights[class_number], class_number)
+                
+                p = 0.5 # fraction from close to tumour patches
+                n = int(samples_per_class * samples_weights[class_number] * p)
+                
+                indexes1 = np.random.choice(np.arange(len(train_p)), n, replace = False)
+                indexes2 = np.random.choice(np.arange(len(train_p2)), samples_per_class * samples_weights[class_number] - n, replace = False)
+                
+                train_p, train_l = train_p[indexes1], train_l[indexes1]
+                train_p2, train_l2 = train_p2[indexes2], train_l2[indexes2]
+                
+                train_p = np.concatenate((train_p, train_p2))
+                train_l = np.concatenate((train_l, train_l2))
+            
+            else:
+                train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class * samples_weights[class_number], class_number)
+
             X_train.append(train_p)
             y_train.append(train_l)
 

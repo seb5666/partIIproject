@@ -48,7 +48,14 @@ class DataExtractor():
         print("Finding valid validation patches")
 #        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber, self.patch_size) for classNumber in self.classes]
         self.valid_validation_patches = self.find_patches_close_to_tumour(self.validation_images, self.validation_labels)
-
+        
+        n = 500
+        indexes = [np.random.choice(np.arange(len(self.valid_training_patches_close_to_tumours[classNumber])), n, replace = False) for classNumber in self.classes]
+        print([self.valid_training_patches_close_to_tumours[classNumber].shape for classNumber in self.classes])
+        self.valid_validation_patches = np.array([self.valid_training_patches_close_to_tumours[classNumber][indexes[classNumber]] for classNumber in self.classes])
+        self.valid_training_patches_close_to_tumours = np.array([np.delete(self.valid_training_patches_close_to_tumours[classNumber], indexes[classNumber], axis = 0) for classNumber in self.classes])
+        print([self.valid_validation_patches[classNumber].shape for classNumber in self.classes])
+        print([self.valid_training_patches_close_to_tumours[classNumber].shape for classNumber in self.classes])
 
         if self.normalization == "scan":
             num_channels = 4
@@ -231,7 +238,7 @@ class DataExtractor():
             X_train.append(train_p)
             y_train.append(train_l)
 
-            val_p, val_l = self.findPatches(self.valid_validation_patches, self.validation_images, self.validation_dimensions, validation_samples_per_class, class_number)
+            val_p, val_l = (self.createPatches(self.images, self.valid_validation_patches[class_number], class_number))
             X_val.append(val_p)
             y_val.append(val_l)
 

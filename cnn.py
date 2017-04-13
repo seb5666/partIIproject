@@ -66,15 +66,13 @@ model.summary()
 print("Trainable weights", model.trainable_weights)
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
-(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
+#(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])
-assert(val_dimensions == [image.shape for image in val_images])
 
 print("Loaded %d training images"%len(images))
-print("Loaded %d validation images"%len(val_images))
 
-dataExtractor = DataExtractor(images, labels, val_images, val_labels, find_all_samples=find_all_samples, tf_ordering=tf_ordering, patch_size = patch_size)
+dataExtractor = DataExtractor(images, labels, [], [], find_all_samples=find_all_samples, tf_ordering=tf_ordering, patch_size = patch_size)
 
 samples_weights = [1,1,1,1,1]  
 print("Using weights for data", samples_weights)
@@ -98,6 +96,7 @@ start_rate = 3e-5
 end_rate = 3e-7
 X_val = None
 y_val = None
+history = None
 for i in range(nb_epochs):
     gc.collect()
     print("Epoch {}".format(i))  
@@ -113,7 +112,7 @@ for i in range(nb_epochs):
     lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
     model.optimizer.lr.set_value(lr)
     print("lr: {}".format(model.optimizer.lr.get_value()))
-    model.fit_generator(
+    hist = model.fit_generator(
         dataGenerator(X_train, y_train),
         samples_per_epoch = X_train.shape[0],
         nb_epoch = 1, 
@@ -121,7 +120,12 @@ for i in range(nb_epochs):
         callbacks=[checkpointer],
         verbose = verbose
         )
-
+    if history is None:
+        history = hist.history
+    else:
+        for k in history:
+            history[k].extend(hist.history[k])
+print(history)
 #Save the model
 model.save(filePath)
 print("Saved the model to", filePath)

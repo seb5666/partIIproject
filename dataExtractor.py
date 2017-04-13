@@ -62,13 +62,9 @@ class DataExtractor():
             #print(self.images[0][70,:,:,0])
             for image in self.images:
                 for channel in range(num_channels):
-                    sequence = image[:,:,:, channel]
-                    image[:,:,:, channel] = (sequence - np.min(sequence)) /(np.max(sequence) - np.min(sequence))
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
             for image in self.validation_images:
                 for channel in range(4):
-                    sequence = image[:,:,:, channel]
-                    image[:,:,:, channel] = (sequence - np.min(sequence)) /(np.max(sequence) - np.min(sequence))
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
             #print(self.images[0][70,:,:,0])
             print("Done normalizing")

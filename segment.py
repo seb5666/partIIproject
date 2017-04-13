@@ -55,10 +55,6 @@ def normalize_patches(patches):
     return patches
 
 def normalize_channel(channel):
-    channel_max = np.max(channel)
-    channel_min = np.min(channel)
-    channel = (channel - channel_min) / (channel_max - channel_min)
-    #print("Transforming input to range [0,1]")
     std = np.std(channel)
     if std != 0:
             return (channel - np.mean(channel)) / std

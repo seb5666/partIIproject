@@ -1,6 +1,5 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
-from visualise import showSlice
 from double_fcn_model import createModel
 from inputParser import parse_input
 from metrics import dice 

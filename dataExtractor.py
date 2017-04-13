@@ -32,21 +32,7 @@ class DataExtractor():
         self.valid_training_patches = [self.findValidPatchesCoordinates(self.images, self.labels, self.dimensions, classNumber, self.patch_size) for classNumber in self.classes]
         self.valid_training_patches_close_to_tumours = self.find_patches_close_to_tumour(self.images, self.labels)
 
-#        for classNumber in self.classes:
-#            print("Class " , classNumber)
-#            print(self.valid_training_patches[classNumber].shape)
-#            print(self.valid_training_patches_close_to_tumours[classNumber].shape)
-#            for i in range(4):
-#                print("Dimension = ", i)
-#                bincount = np.bincount(self.valid_training_patches[classNumber][:,i])
-#                bincount2 = np.bincount(self.valid_training_patches_close_to_tumours[classNumber][:,i])
-#                print(bincount.shape)
-#                print(bincount)
-#                print(bincount2.shape)
-#                print(bincount2)
-
         print("Finding valid validation patches")
-#        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber, self.patch_size) for classNumber in self.classes]
         
         n = 500
         indexes = [np.random.choice(np.arange(len(self.valid_training_patches_close_to_tumours[classNumber])), n, replace = False) for classNumber in self.classes]
@@ -55,6 +41,7 @@ class DataExtractor():
         self.valid_training_patches_close_to_tumours = np.array([np.delete(self.valid_training_patches_close_to_tumours[classNumber], indexes[classNumber], axis = 0) for classNumber in self.classes])
         print([self.valid_validation_patches[classNumber].shape for classNumber in self.classes])
         print([self.valid_training_patches_close_to_tumours[classNumber].shape for classNumber in self.classes])
+    
 
         if self.normalization == "scan":
             num_channels = 4
@@ -295,10 +282,29 @@ class DataExtractor():
                 n = int(samples_per_class * p)
                 
                 indexes = np.random.choice(valid_centers.shape[0], n, replace = False)
-                indexes_close_to_tumours = np.random.choice(valid_centers_close_to_tumours.shape[0], samples_per_class - n, replace = False)
-                
                 centers = valid_centers[indexes, :]
+                
+                #makes sure we don't train on validation patches
+                while True:
+                    found = 0
+                    for j in range(len(self.valid_validation_patches[class_number])):
+                        val_patch = self.valid_validation_patches[class_number][j]
+                        a = np.argwhere(centers[:,0] == val_patch[0])[:,0]
+                        b = np.argwhere(centers[:,1] == val_patch[1])[:,0]
+                        c = np.argwhere(centers[:,2] == val_patch[2])[:,0]
+                        d = np.argwhere(centers[:,3] == val_patch[3])[:,0]
+                        
+                        inter = np.intersect1d(a, np.intersect1d(b, np.intersect1d(c, d)))
+                        if len(inter)>0:
+                            found += 1
+                    if found == 0:
+                        break
+                    else:
+                        print("Selected overlaping patches, need to reselect them for class {}".format(class_number))
+
+                indexes_close_to_tumours = np.random.choice(valid_centers_close_to_tumours.shape[0], samples_per_class - n, replace = False)
                 centers_close_to_tumours = valid_centers_close_to_tumours[indexes_close_to_tumours, :]
+
                 centers = np.concatenate((centers, centers_close_to_tumours))
             else:
                 valid_centers = self.valid_training_patches[class_number]
@@ -478,6 +484,24 @@ class DataExtractor():
         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)
         centers = valid_centers[indexes, :]
         
+        #makes sure we don't train on validation patches
+        while True:
+            found = 0
+            for j in range(len(self.valid_validation_patches[classNumber])):
+                val_patch = self.valid_validation_patches[classNumber][j]
+                a = np.argwhere(centers[:,0] == val_patch[0])[:,0]
+                b = np.argwhere(centers[:,1] == val_patch[1])[:,0]
+                c = np.argwhere(centers[:,2] == val_patch[2])[:,0]
+                d = np.argwhere(centers[:,3] == val_patch[3])[:,0]
+                
+                inter = np.intersect1d(a, np.intersect1d(b, np.intersect1d(c, d)))
+                if len(inter)>0:
+                    found += 1
+            if found == 0:
+                break
+            else:
+                print("Selected overlaping patches, need to reselect them for class {}".format(classNumber))
+
         #extract patches around those center pixels
         p, l = self.createPatches(images, centers, classNumber)
         # this returns copies of p and l which is not ideal, create a method to do it in place?

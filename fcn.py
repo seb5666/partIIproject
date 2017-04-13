@@ -1,6 +1,5 @@
 from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
-from visualise import showSlice
 from fcn_model import createModel
 from inputParser import parse_input
 from metrics import dice 
@@ -30,7 +29,7 @@ use_N4Correction = True
 print("Using N4 correction", use_N4Correction)
 
 training_samples = 100000
-validation_samples = 20000
+#validation_samples = 20000
 
 patch_size = (64,64)
 label_size = (8,8)
@@ -60,14 +59,14 @@ model.summary()
 print("Trainable weights", model.trainable_weights)
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
-(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
+#(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])
-assert(val_dimensions == [image.shape for image in val_images])
+#assert(val_dimensions == [image.shape for image in val_images])
 print("Loaded %d training images"%len(images))
-print("Loaded %d validation images"%len(val_images))
+#print("Loaded %d validation images"%len(val_images))
 
-dataExtractor = DataExtractor(images, labels, val_images, val_labels, tf_ordering=tf_ordering, patch_size = patch_size, label_size=label_size)
+dataExtractor = DataExtractor(images, labels, [], [], tf_ordering=tf_ordering, patch_size = patch_size, label_size=label_size)
 
 print("Batch size", batch_size)
 
@@ -82,12 +81,12 @@ to_categorical = np.vectorize(np_utils.to_categorical)
 
 X_val = None
 y_val = None
-
+history = None
 for i in range(nb_epochs):
     gc.collect()
-    print("Epoch {}".format(i))  
+    print("Epoch {}/{}".format(i+1, nb_epochs))  
 
-    X_train, y_train, X_val2, y_val2 = dataExtractor.extractLargeTrainingData(training_samples = training_samples, validation_samples=validation_samples)
+    X_train, y_train, X_val2, y_val2 = dataExtractor.extractLargeTrainingData(training_samples = training_samples)
         
     if X_val is None:
         X_val = X_val2
@@ -99,7 +98,7 @@ for i in range(nb_epochs):
     #lr = start_rate + i * ((end_rate - start_rate) / (nb_epochs-1))
     #model.optimizer.lr.set_value(lr)
     #print("lr: {}".format(model.optimizer.lr.get_value()))
-    model.fit_generator(
+    hist = model.fit_generator(
         trainingDataGenerator.flow(X_train, y_train, batch_size = batch_size),
         samples_per_epoch = X_train.shape[0],
         nb_epoch = 1, 
@@ -107,6 +106,13 @@ for i in range(nb_epochs):
         callbacks=[checkpointer],
         verbose = verbose
         )
+    if history is None:
+        history = hist.history
+    else:
+        for k in history:
+            history[k].extend(hist.history[k])
+    model.save(filePath[:-3] + "epoch_" + str(i) + ".h5")
+print(history)
 
 #Save the model
 model.save(filePath)

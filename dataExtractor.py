@@ -47,7 +47,6 @@ class DataExtractor():
 
         print("Finding valid validation patches")
 #        self.valid_validation_patches = [self.findValidPatchesCoordinates(self.validation_images, self.validation_labels, self.validation_dimensions, classNumber, self.patch_size) for classNumber in self.classes]
-        self.valid_validation_patches = self.find_patches_close_to_tumour(self.validation_images, self.validation_labels)
         
         n = 500
         indexes = [np.random.choice(np.arange(len(self.valid_training_patches_close_to_tumours[classNumber])), n, replace = False) for classNumber in self.classes]
@@ -292,12 +291,26 @@ class DataExtractor():
         y_train = []
         training_class_distribution = []
         for class_number in classes:
-            valid_centers = self.valid_training_patches[class_number]
-    
-            #randomly choose numPatches valid center_pixels
-            indexes = np.random.choice(valid_centers.shape[0], samples_per_class, replace=False)
-            centers = valid_centers[indexes, :]
-        
+            if class_number == 0:
+                valid_centers = self.valid_training_patches[class_number]
+                valid_centers_close_to_tumours= self.valid_training_patches_close_to_tumours[class_number]
+                
+                p = 0.5 # fraction from close to tumour patches
+                n = int(samples_per_class * p)
+                
+                indexes = np.random.choice(valid_centers.shape[0], n, replace = False)
+                indexes_close_to_tumours = np.random.choice(valid_centers_close_to_tumours.shape[0], samples_per_class - n, replace = False)
+                
+                centers = valid_centers[indexes, :]
+                centers_close_to_tumours = valid_centers_close_to_tumours[indexes_close_to_tumours, :]
+                centers = np.concatenate((centers, centers_close_to_tumours))
+            else:
+                valid_centers = self.valid_training_patches[class_number]
+                #randomly choose numPatches valid center_pixels
+                indexes = np.random.choice(valid_centers.shape[0], samples_per_class, replace=False)
+            
+                centers = valid_centers[indexes, :]
+
             #extract patches around those center pixels
             p = self.extractPatches(self.images, centers, self.patch_size)
             l, count = self.extractLabels(self.labels, centers)
@@ -317,14 +330,10 @@ class DataExtractor():
         validation_class_distribution = []
         for class_number in classes:
             valid_centers = self.valid_validation_patches[class_number]
-        
-            #randomly choose numPatches valid center_pixels
-            indexes = np.random.choice(valid_centers.shape[0], validation_samples_per_class, replace=False)
-            centers = valid_centers[indexes, :]
             
             #extract patches around those center pixels
-            p = self.extractPatches(self.validation_images, centers, self.patch_size)
-            l, count = self.extractLabels(self.validation_labels, centers)
+            p = self.extractPatches(self.images, valid_centers, self.patch_size)
+            l, count = self.extractLabels(self.labels, valid_centers)
             
             X_val.append(p)
             y_val.append(l)
@@ -336,7 +345,6 @@ class DataExtractor():
         validation_class_distribution = np.sum(validation_class_distribution, axis = 0)
 
         X_train, y_train = shuffle(X_train, y_train)
-        X_val, y_val = shuffle(X_val, y_val)
 
         print("Training class distribution {}, {}".format(training_class_distribution, ["{0:0.3f}".format(t / sum(training_class_distribution)) for t in training_class_distribution]))
         print("Validation class distribution {}, {}".format(validation_class_distribution, ["{0:0.3f}".format(t / sum(validation_class_distribution)) for t in validation_class_distribution]))
@@ -459,11 +467,11 @@ class DataExtractor():
         valid_centers = self.filterValidPositions(dimensions, possible_centers, patch_size)
         print("Valid for", classNumber, valid_centers.shape)
 
-        #if classNumber == 0:
-        #    valid_centers = valid_centers[valid_centers[:,1] % 3 == 0]
-        #    valid_centers = valid_centers[valid_centers[:,2] % 3 == 0]
-        #    valid_centers = valid_centers[valid_centers[:,3] % 3 == 0]
-        #    print("Valid for after removing_neighbours", classNumber, valid_centers.shape)
+        if classNumber == 0:
+            valid_centers = valid_centers[valid_centers[:,1] % 3 == 0]
+            valid_centers = valid_centers[valid_centers[:,2] % 3 == 0]
+            valid_centers = valid_centers[valid_centers[:,3] % 3 == 0]
+            print("Valid for after removing_neighbours", classNumber, valid_centers.shape)
                 
         return valid_centers
 

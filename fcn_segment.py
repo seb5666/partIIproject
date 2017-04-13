@@ -48,7 +48,6 @@ image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = use_N4
 print("Image dimension", image_dimension)
 
 def normalize_channel(channel):
-    print("Transforming input to range [0,1]")
     std = np.std(channel)
     if std != 0:
             return (channel - np.mean(channel)) / std

@@ -1,6 +1,7 @@
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 import math
 
@@ -80,7 +81,7 @@ image = pad(image, ((0,0), (height_padding,height_padding + label_size[0]),(widt
 print("New dimension", image.shape)
 
 segmentation = []
-for i in range(0, image_dimension[0]):
+for i in tqdm(range(0, image_dimension[0])):
     #print(i, end='')
     slice = image[i]
 #    slice = np.arange(180 * 158).reshape((180, 158))

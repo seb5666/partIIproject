@@ -1,6 +1,7 @@
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 import keras
 from keras.models import load_model
@@ -76,7 +77,7 @@ image = pad(image, ((0,0), (half_height,half_height),(half_width, half_width), (
 print("New dimension", image.shape)
 
 segmentation = []
-for i in range(0, image_dimension[0]):
+for i in tqdm(range(0, image_dimension[0])):
     #print("Slice", i)
     patches = extract_patches_2d(image[i], patch_size)
     

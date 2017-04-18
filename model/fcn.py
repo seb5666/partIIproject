@@ -25,10 +25,10 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-use_N4Correction = True
+use_N4Correction = False
 print("Using N4 correction", use_N4Correction)
 
-training_samples = 100000
+training_samples = 1000
 #validation_samples = 20000
 
 patch_size = (64,64)

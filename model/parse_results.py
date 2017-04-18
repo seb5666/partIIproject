@@ -111,38 +111,45 @@ for sub in submissions:
     ppv_std[sub] = std_dev(ppv_scores, ppv_mean[sub])
 
 dices = [[],[],[]]
+max_vals = []
 #report values
 for sub in dice_mean:
     mean = dice_mean[sub]
     std = dice_std[sub]
     print("Sub {:2}, {:0.4f}±{:0.4f} {:0.4f}±{:0.4f} {:0.4f}±{:0.4f}" .format(sub, mean[1], std[1], mean[2], std[2], mean[3], std[3]))
-    for region in [1,2,3]:
-        dices[region-1].append(mean[region])
+    if max_vals == []:
+        max_vals = [mean[i] for i in [1,2,3]]
+        maxs = [sub for i in [1,2,3]]
+    else:
+        for i in [1,2,3]:
+            if max_vals[i-1] < mean[i]:
+                max_vals[i-1] = mean[i]
+                maxs[i-1] = sub
 
-maxs = [dices[region].index(max(dices[region])) for region in range(3)]
-print("Maximums at {}".format(maxs))
+print("Maximums at {}: {}".format(maxs, max_vals))
 
 def plot_results(sub):
     scores = [[],[],[]]
     for scan in submissions[sub]:
         for k, region in enumerate(submissions[sub][scan]):
            scores[k].append(float(submissions[sub][scan][region][headers.index('Dice')]))
-    plt.figure(1)
-    plt.boxplot(scores, sym='', showmeans=True)
-    plt.xticks([1, 2, 3], ['Complete', 'Core', 'Enhancing'])
-    plt.title("Box plot showing the submission results for the challenge dataset")
+    #plt.figure(1)
+    #plt.boxplot(scores, sym='', showmeans=True)
+    #plt.xticks([1, 2, 3], ['Complete', 'Core', 'Enhancing'])
+    #plt.ylim((0,1))
+    #plt.title("Box plot showing the submission results for the challenge dataset")
 
-    plt.figure(2)
     means = np.array(list(dice_mean[sub].values()))
     stds = np.array(list(dice_std[sub].values()))
     mins = np.array([min(r) for r in scores])
     maxs = np.array([max(r) for r in scores])
-    plt.errorbar([1,2,3], means, yerr=stds, fmt='o')
-    plt.plot([1,2,3], mins, 'rx')
-    plt.plot([1,2,3], maxs, 'rx')
+    plt.errorbar([1,2,3], means, yerr=stds, fmt='o', label="Mean value with std")
+    plt.plot([1,2,3], mins, 'rx', label='Min value')
+    plt.plot([1,2,3], maxs, 'rx', label='Max value')
     plt.xlim((0,4))
     plt.ylim((0,1))
     plt.xticks([1, 2, 3], ['Complete', 'Core', 'Enhancing'])
+    plt.legend(loc='lower left', numpoints=1)
     plt.show()
 
 def show_results(sub):
@@ -156,12 +163,28 @@ def show_results(sub):
             sensitivity = float(submissions[sub][scan][region][headers.index('Sensitivity')])
             ppv = float(submissions[sub][scan][region][headers.index('Positive Predictive Value')])
             print("{}\t{}\t{:0.3f}\t{:0.3f}\t\t{:0.3f}".format(scan, region, dice, sensitivity, ppv))
-        print("{:0.4f}±{:0.4f}\t{:0.4f}±{:0.4f}\t{:0.4f}±{:0.4f}" .format(dice_mean[sub][region], dice_std[sub][region], sens_mean[sub][region], sens_std[sub][region], ppv_mean[sub][region], ppv_std[sub][region]))
+        print("{:0.3f}±{:0.3f}\t{:0.3f}±{:0.3f}\t{:0.3f}±{:0.3f}" .format(dice_mean[sub][region], dice_std[sub][region], sens_mean[sub][region], sens_std[sub][region], ppv_mean[sub][region], ppv_std[sub][region]))
     xs = [i for i in range(1,11)]
     plt.plot(xs, dices[0], 'x', xs, dices[1], 'o', xs, dices[2], 'x')
     plt.xlim(0, 11)
     plt.ylim(0,1)
     plt.show()
-#show_results(57)
-#show_results(60)
-plot_results(60)
+
+def latex_results(sub):
+    for i, scan in enumerate(submissions[sub]):
+        dices = []
+        sens = []
+        ppvs = []
+        for region in [1,2,3]:
+            dice = float(submissions[sub][scan][region][headers.index('Dice')])
+            sensitivity = float(submissions[sub][scan][region][headers.index('Sensitivity')])
+            ppv = float(submissions[sub][scan][region][headers.index('Positive Predictive Value')])
+            dices.append(dice)
+            sens.append(sensitivity)
+            ppvs.append(ppv)
+        print("{} & {:0.3f} & {:0.3f} & {:0.3f} \\\\".format(i+1, dices[0], dices[1], dices[2]))
+    print("\\textbfmean & ${:0.3f} \\pm {:0.3f}$ & ${:0.3f} \\pm {:0.3f}$ & ${:0.3f} \\pm {:0.3f}$" .format(dice_mean[sub][1], dice_std[sub][1], dice_mean[sub][2], dice_std[sub][2], dice_mean[sub][3], dice_std[sub][3]))
+
+show_results(73)
+#latex_results(73)
+#plot_results(73)

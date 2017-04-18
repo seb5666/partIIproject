@@ -20,11 +20,11 @@ if (keras.backend.image_dim_ordering() == "th"):
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
 find_all_samples = False
-use_N4Correction = True
+use_N4Correction = False
 second_training_phase = False
 
-training_samples = 450000
-validation_samples = 45000
+training_samples = 1000
+validation_samples = 10
 
 patch_size = (33,33)
 
@@ -99,8 +99,7 @@ y_val = None
 history = None
 for i in range(nb_epochs):
     gc.collect()
-    print("Epoch {}".format(i))  
-
+    print("Epoch {}/{}".format(i+1, nb_epochs))  
     X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples=validation_samples)
 
     if X_val is None:

@@ -21,7 +21,7 @@ class DataExtractor():
 
         self.images = images
         self.labels = labels
-
+        
         self.validation_images = validation_images
         self.validation_labels = validation_labels
         

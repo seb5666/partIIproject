@@ -5,7 +5,7 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_samples_per_class = 500, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1), distance_between_patches_in_class0 = False, num_channels = 4, verbose = True):
+    def __init__(self, images, labels, validation_samples_per_class = 100, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1), distance_between_patches_in_class0 = True, num_channels = 4, verbose = True):
       
         self.tf_ordering = tf_ordering
 
@@ -30,11 +30,37 @@ class DataExtractor():
         self.valid_training_patches_close_to_tumours = self.find_patches_close_to_tumour(self.images, self.labels)
 
         if validation_samples_per_class > 0:
+
             self.debug("Finding {} per class valid validation patches".format(validation_samples_per_class))
             indexes = [(np.random.choice(len(self.valid_training_patches_close_to_tumours[classNumber]), validation_samples_per_class, replace = False) if len(self.valid_training_patches_close_to_tumours[classNumber]) > 0 else np.array([])) for classNumber in self.classes]
             
             self.valid_validation_patches = np.array([self.valid_training_patches_close_to_tumours[classNumber][indexes[classNumber]] for classNumber in self.classes])
+            
+            #Remove validation patches from training sets
+            self.debug(list(map(lambda l : l.shape, self.valid_training_patches_close_to_tumours)))
+            self.debug(list(map(lambda l : l.shape, self.valid_training_patches)))
             self.valid_training_patches_close_to_tumours = np.array([np.delete(self.valid_training_patches_close_to_tumours[classNumber], indexes[classNumber], axis = 0) for classNumber in self.classes])
+            to_remove = []
+            found = 0
+            for j in range(len(self.valid_validation_patches[0])):
+                val_patch = self.valid_validation_patches[0][j]
+                zs = np.argwhere(self.valid_training_patches[0][:,0] == val_patch[0])[:,0]
+                ys = np.argwhere(self.valid_training_patches[0][:,1] == val_patch[1])[:,0]
+                xs = np.argwhere(self.valid_training_patches[0][:,2] == val_patch[2])[:,0]
+                ws = np.argwhere(self.valid_training_patches[0][:,3] == val_patch[3])[:,0]
+                
+                inter = np.intersect1d(zs, np.intersect1d(ys, np.intersect1d(xs, ws)))
+                if len(inter)>0:
+                    found += 1
+                    print(inter)
+                    to_remove.extend(inter)
+            self.debug("Removing {} overlapping patches".format(len(to_remove)))
+            self.valid_training_patches = np.array([np.delete(self.valid_training_patches[0], to_remove, axis = 0)])
+            
+            self.debug(list(map(lambda l : l.shape, self.valid_training_patches_close_to_tumours)))
+            self.debug(list(map(lambda l : l.shape, self.valid_training_patches)))
+
+        
         if self.normalization == "scan":
             self.debug("Normalizing each scan")
             for image in self.images:
@@ -99,23 +125,15 @@ class DataExtractor():
             train_l = []
             
             
-            if len(self.valid_training_patches[class_number] > 0):
-                if class_number == 0 and len(self.valid_training_patches_close_to_tumours[class_number]) > 0:
-                        train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class, class_number)
-                        train_p2, train_l2 = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class, class_number)
-                        if train_p.shape[0] > 0 and train_p2.shape[0] > 0:
-                            p = 0.5 # fraction from close to tumour patches
-                            n = int(samples_per_class * p)
-                            
-                            indexes1 = np.random.choice(np.arange(len(train_p)), n, replace = False)
-                            indexes2 = np.random.choice(np.arange(len(train_p2)), samples_per_class - n, replace = False)
-                            
-                            train_p, train_l = train_p[indexes1], train_l[indexes1]
-                            train_p2, train_l2 = train_p2[indexes2], train_l2[indexes2]
+            if len(self.valid_training_patches_close_to_tumours[class_number] > 0):
+                if class_number == 0 and len(self.valid_training_patches_close_to_tumours[class_number]) >= 2:
+                        train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, int(samples_per_class/2), class_number)
+                        train_p2, train_l2 = self.findPatches(self.valid_training_patches, self.images, self.dimensions, int(samples_per_class/2), class_number)
+                        
                         train_p = np.concatenate((train_p, train_p2))
                         train_l = np.concatenate((train_l, train_l2))
                 else:
-                    train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class, class_number)
+                    train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class, class_number)
                 X_train.append(train_p)
                 y_train.append(train_l)
             
@@ -174,7 +192,7 @@ class DataExtractor():
                     if found == 0:
                         break
                     else:
-                        print("Selected overlaping patches, need to reselect them for class {}".format(class_number))
+                        print("Selected {} overlaping patches, need to reselect them for class {}".format(found, class_number))
                         indexes = np.random.choice(valid_centers.shape[0], n, replace = False)
                         centers = valid_centers[indexes, :]
             
@@ -283,10 +301,11 @@ class DataExtractor():
                         inter = np.intersect1d(a, np.intersect1d(b, np.intersect1d(c, d)))
                         if len(inter)>0:
                             found += 1
+                            print(inter)
                     if found == 0:
                         break
                     else:
-                        print("Selected overlaping patches, need to reselect them for class {}".format(classNumber))
+                        print("Selected {} overlaping patches, need to reselect them for class {}".format(found, classNumber))
                         indexes = np.random.choice(valid_centers.shape[0], numPatches, replace=False)
                         centers = valid_centers[indexes, :]
         else:

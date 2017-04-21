@@ -19,7 +19,6 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-find_all_samples = False
 use_N4Correction = False
 second_training_phase = False
 
@@ -33,7 +32,6 @@ verbose = 1
 
 rotateImages = True
 
-print("Finding all samples", find_all_samples)
 print("Using N4 correction", use_N4Correction)
 print("Second training phase with random samples", second_training_phase)
 args = parse_input()
@@ -72,7 +70,7 @@ assert(image_dimensions == [image.shape for image in images])
 
 print("Loaded %d training images"%len(images))
 
-dataExtractor = DataExtractor(images, labels, [], [], find_all_samples=find_all_samples, tf_ordering=tf_ordering, patch_size = patch_size)
+dataExtractor = DataExtractor(images, labels, tf_ordering=tf_ordering, patch_size = patch_size)
 
 samples_weights = [1,1,1,1,1]  
 print("Using weights for data", samples_weights)
@@ -100,7 +98,7 @@ history = None
 for i in range(nb_epochs):
     gc.collect()
     print("Epoch {}/{}".format(i+1, nb_epochs))  
-    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(samples_weights = samples_weights, training_samples = training_samples, validation_samples=validation_samples)
+    X_train, y_train, X_val2, y_val2 = dataExtractor.extractTrainingData(training_samples = training_samples)
 
     if X_val is None:
         X_val = X_val2

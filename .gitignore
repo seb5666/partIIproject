@@ -4,3 +4,5 @@ models/
 *.mha
 *.pyc
 *.png
+.coverage
+htmlcov/

@@ -5,7 +5,7 @@ from keras.utils import np_utils
 
 class DataExtractor():
     
-    def __init__(self, images, labels, validation_samples_per_class = 500, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1), distance_between_patches_in_class0 = True, num_channels = 4, verbose = True):
+    def __init__(self, images, labels, validation_samples_per_class = 500, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1), distance_between_patches_in_class0 = False, num_channels = 4, verbose = True):
       
         self.tf_ordering = tf_ordering
 
@@ -30,15 +30,11 @@ class DataExtractor():
         self.valid_training_patches_close_to_tumours = self.find_patches_close_to_tumour(self.images, self.labels)
 
         if validation_samples_per_class > 0:
-            self.debug("Finding valid validation patches")
+            self.debug("Finding {} per class valid validation patches".format(validation_samples_per_class))
             indexes = [(np.random.choice(len(self.valid_training_patches_close_to_tumours[classNumber]), validation_samples_per_class, replace = False) if len(self.valid_training_patches_close_to_tumours[classNumber]) > 0 else np.array([])) for classNumber in self.classes]
             
-            print([self.valid_training_patches_close_to_tumours[classNumber].shape for classNumber in self.classes])
             self.valid_validation_patches = np.array([self.valid_training_patches_close_to_tumours[classNumber][indexes[classNumber]] for classNumber in self.classes])
             self.valid_training_patches_close_to_tumours = np.array([np.delete(self.valid_training_patches_close_to_tumours[classNumber], indexes[classNumber], axis = 0) for classNumber in self.classes])
-            print([self.valid_validation_patches[classNumber].shape for classNumber in self.classes])
-            print([self.valid_training_patches_close_to_tumours[classNumber].shape for classNumber in self.classes])
-    
         if self.normalization == "scan":
             self.debug("Normalizing each scan")
             for image in self.images:
@@ -46,7 +42,6 @@ class DataExtractor():
                     image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
             self.debug("Done normalizing")
 
-    
     def find_patches_close_to_tumour(self, images, labels):
         tumour_mins = []
         tumour_maxs = []

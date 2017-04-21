@@ -19,11 +19,9 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-use_N4Correction = False
-second_training_phase = False
+use_N4Correction = True
 
-training_samples = 1000
-validation_samples = 10
+training_samples = 30000
 
 patch_size = (33,33)
 
@@ -33,7 +31,6 @@ verbose = 1
 rotateImages = True
 
 print("Using N4 correction", use_N4Correction)
-print("Second training phase with random samples", second_training_phase)
 args = parse_input()
 data_dir = args.data_dir
 validation_dir = args.validation_dir
@@ -52,13 +49,8 @@ if model_file is None:
     print("Creating new model")
     model = createModel(shape, tf_ordering)
 else:
-    if second_training_phase:
-        print("Loading model and setting all but dense layers as non trainable", model_file)
-        model = createModel(shape, tf_ordering, second_training_phase=True)
-        model.load_weights(model_file, custom_objects={'dice':dice})
-    else:
-        print("Loading model from", model_file)
-        model = load_model(model_file, custom_objects={'dice':dice})
+    print("Loading model from", model_file)
+    model = load_model(model_file, custom_objects={'dice':dice})
 
 model.summary()    
 print("Trainable weights", model.trainable_weights)

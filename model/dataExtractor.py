@@ -121,18 +121,20 @@ class DataExtractor():
             train_p = []
             train_l = []
             
-            
-            if len(self.valid_training_patches_close_to_tumours[class_number] > 0):
-                if class_number == 0 and len(self.valid_training_patches_close_to_tumours[class_number]) >= 2:
+            if class_number == 0:
+                if len(self.valid_training_patches_close_to_tumours[class_number]) > 0 and len(self.valid_training_patches_close_to_tumours[class_number]) >= 2:
                         train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, int(samples_per_class/2), class_number)
                         train_p2, train_l2 = self.findPatches(self.valid_training_patches, self.images, self.dimensions, int(samples_per_class/2), class_number)
                         
                         train_p = np.concatenate((train_p, train_p2))
                         train_l = np.concatenate((train_l, train_l2))
                 else:
-                    train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class, class_number)
-                X_train.append(train_p)
-                y_train.append(train_l)
+                    train_p, train_l = self.findPatches(self.valid_training_patches, self.images, self.dimensions, samples_per_class, class_number)
+            else:
+                train_p, train_l = self.findPatches(self.valid_training_patches_close_to_tumours, self.images, self.dimensions, samples_per_class, class_number)
+
+            X_train.append(train_p)
+            y_train.append(train_l)
             
             if self.validation_samples_per_class > 0:
                 val_p, val_l = (self.createPatches(self.images, self.valid_validation_patches[class_number], class_number))
@@ -140,7 +142,7 @@ class DataExtractor():
                 val_p, val_l = np.array([]), np.array([])
             X_val.append(val_p)
             y_val.append(val_l)
-                
+        print([X_train[i].shape for i in range(len(X_train))])
         y_train = np.concatenate(y_train)
         y_train = np_utils.to_categorical(y_train, int(len(self.classes)))
         X_train = np.concatenate(X_train)

@@ -5,13 +5,6 @@ from tqdm import tqdm
 from sklearn.feature_extraction.image import extract_patches_2d
 import skimage
 
-def normalize(image):
-    for channel in range(4):
-        modality = image[:, :, :, channel]
-        std = np.std(channel)
-        if std != 0:
-            image[:, :, :, channel] = (channel - np.mean(channel)) / std
-
 def pad(image, patch_size):
     half_height = int(patch_size[0]/2)
     half_width = int(patch_size[1]/2)
@@ -58,10 +51,13 @@ def segment(image, patch_size, classify,  tf_ordering = True, batch_size = 1, ve
 
 
 if __name__ == '__main__':
+    import sys
+
     import keras
     from keras.models import load_model
+
     from loadImagesFromDisk import loadTestImage
-    import sys
+    from normalization import normalize_scans
 
     assert(len(sys.argv) >= 4)
     model_path = sys.argv[1]
@@ -78,7 +74,7 @@ if __name__ == '__main__':
 
     image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = True)
 
-    normalize(image)
+    image = normalize_scans([image], num_channels = 4)[0]
 
     batch_size = 128
     patch_size=(33,33)

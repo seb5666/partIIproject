@@ -3,6 +3,8 @@ from sklearn.utils import shuffle
 
 from keras.utils import np_utils
 
+from normalization import normalize_scans
+
 class DataExtractor():
     
     def __init__(self, images, labels, validation_samples_per_class = 100, tf_ordering=True, normalization = "scan", classes=[0,1,2,3,4], patch_size = (33,33), label_size = (1,1), distance_between_patches_in_class0 = True, num_channels = 4, verbose = True):
@@ -60,13 +62,8 @@ class DataExtractor():
             self.debug(list(map(lambda l : l.shape, self.valid_training_patches_close_to_tumours)))
             self.debug(list(map(lambda l : l.shape, self.valid_training_patches)))
 
-        
-        if self.normalization == "scan":
             self.debug("Normalizing each scan")
-            for image in self.images:
-                for channel in range(self.num_channels):
-                    image[:,:,:, channel] = self.normalize_channel(image[:,:,:, channel])
-            self.debug("Done normalizing")
+            self.images = normalize_scans(self.images, self.num_channels)
 
     def find_patches_close_to_tumour(self, images, labels):
         tumour_mins = []

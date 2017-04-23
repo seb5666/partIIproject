@@ -50,22 +50,22 @@ if __name__ == '__main__':
 
     model = load_model(model_path)
     
-#    for index, dir in enumerate(listdir(images_dir_path)):
-#        if "brats" in dir:
-#            image_dir_path = os.path.join(images_dir_path, dir)
-#            print("Segmenting image {}".format(image_dir_path))
-#            image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = use_N4Correction)
-#            image = normalize_scans([image], num_channels = 4)[0]
-#
-#            print("Image dimension", image_dimension)
-#
-#            segmentation = segment(image, image_dimension, patch_size, label_size, model.predict, batch_size = batch_size, tf_ordering=tf_ordering)
-#
-#            #save segmentation
-#            segmentation = sitk.GetImageFromArray(segmentation)
-#            segmentation = sitk.Cast(segmentation, sitk.sitkUInt8)
-#            output_file = os.path.join(output_dir, dir) + ".mha"
-#            sitk.WriteImage(segmentation, output_file)
-#            print("Saved image to {}".format(output_file))
-#
+    for index, dir in enumerate(listdir(images_dir_path)):
+        if "brats" in dir:
+            image_dir_path = os.path.join(images_dir_path, dir)
+            print("Segmenting image {}".format(image_dir_path))
+            image, image_dimension = loadTestImage(image_dir_path, use_N4Correction = use_N4Correction)
+            image = normalize_scans([image], num_channels = 4)[0]
+
+            print("Image dimension", image_dimension)
+
+            segmentation = segment(image, image_dimension, patch_size, label_size, model.predict, batch_size = batch_size, tf_ordering=tf_ordering)
+
+            #save segmentation
+            segmentation = sitk.GetImageFromArray(segmentation)
+            segmentation = sitk.Cast(segmentation, sitk.sitkUInt8)
+            output_file = os.path.join(output_dir, dir) + ".mha"
+            sitk.WriteImage(segmentation, output_file)
+            print("Saved image to {}".format(output_file))
+
     print("--- {} seconds ---".format(time.time() - start_time))

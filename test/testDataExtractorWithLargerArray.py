@@ -24,7 +24,7 @@ class TestDataExtractorWithLargerArrayInput(unittest.TestCase):
     def test_find_valid_patches_coordinates(self):
         patch_size = (1,1)
         label_size = (1,1)
-        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False, normalization = None)
+        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False)
 
         valid_training_patches = [dataExtractor.find_valid_patches_coordinates(self.images, self.labels, self.dimensions, class_number, patch_size) for class_number in [0,1,2,3,4]]
         #the patches should contain 5 patches for class 0 and 1 patch for each of 1,2,3,4
@@ -37,7 +37,7 @@ class TestDataExtractorWithLargerArrayInput(unittest.TestCase):
     def test_find_valid_patches_coordinates_with_large_patches(self):
         patch_size = (2,2)
         label_size = (1,1)
-        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False, normalization = None)
+        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False)
 
         valid_training_patches = [dataExtractor.find_valid_patches_coordinates(self.images, self.labels, self.dimensions, class_number, patch_size) for class_number in [0,1,2,3,4]]
         #valid_training_patches should only contain a single patch for class 2 and 4, and 2 patches for class 0 
@@ -50,7 +50,7 @@ class TestDataExtractorWithLargerArrayInput(unittest.TestCase):
     def test_find_training_patches_close_to_tumour(self):
         patch_size = (1,1)
         label_size = (1,1)
-        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False, normalization = None)
+        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False)
 
         valid_training_patches = dataExtractor.find_patches_close_to_tumour(self.images, self.labels)
         #the only voxels inside the region close to the tumour are those for classes 1,2,3,4
@@ -63,10 +63,9 @@ class TestDataExtractorWithLargerArrayInput(unittest.TestCase):
     def test_extract_training_patches(self):
         patch_size = (1,1)
         label_size = (1,1)
-        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False, normalization = None)
+        dataExtractor = DataExtractor(self.images, self.labels, patch_size = patch_size, label_size = label_size, distance_between_patches_in_class0 = False, validation_samples_per_class = 0, num_channels = 1, verbose = False)
         
         train_X, train_y, val_X, val_y = dataExtractor.extractTrainingData(5)
-
         self.assertTrue(len(train_X) == 5)
         self.assertTrue(len(train_y) == 5)
 

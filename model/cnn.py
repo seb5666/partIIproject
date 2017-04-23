@@ -5,6 +5,7 @@ from inputParser import parse_input
 from metrics import dice 
 import numpy as np
 import time
+from normalization import normalize_scans
 
 import keras
 from keras.preprocessing.image import ImageDataGenerator
@@ -19,9 +20,9 @@ if (keras.backend.image_dim_ordering() == "th"):
     tf_ordering = False
 print("Image ordering:", keras.backend.image_dim_ordering(), "tf_ordering", tf_ordering)
 
-use_N4Correction = True
+use_N4Correction = False
 
-training_samples = 30000
+training_samples = 3000
 
 patch_size = (33,33)
 
@@ -56,6 +57,9 @@ model.summary()
 print("Trainable weights", model.trainable_weights)
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
+print("Normalizing each scan")
+images = normalize_scans(images, num_channels = 4)
+
 #(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])

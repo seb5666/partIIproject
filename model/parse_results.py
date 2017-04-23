@@ -6,6 +6,7 @@ import re
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib2tikz import save as tikz_save
 
 def std_dev(scores, means):
     stds = {}
@@ -94,6 +95,7 @@ for sub in submissions:
     scans = submissions[sub]
     for scan in scans:
         for region in scans[scan]:
+            print(scans[scan][region])
             dice_scores[region].append(float(scans[scan][region][headers.index('Dice')]))
             sens_scores[region].append(float(scans[scan][region][headers.index('Sensitivity')]))
             ppv_scores[region].append(float(scans[scan][region][headers.index('Positive Predictive Value')]))
@@ -150,8 +152,7 @@ def plot_results(sub):
     plt.ylim((0,1))
     plt.xticks([1, 2, 3], ['Complete', 'Core', 'Enhancing'])
     plt.legend(loc='lower left', numpoints=1)
-    plt.show()
-
+    tikz_save('../Dissertation/plots/pereira_box_plot.tex', figureheight = '\\figureheight', figurewidth = '\\figurewidth')
 def show_results(sub):
     print("Showing individual scans for submissions {}".format(sub))
     print("Scan\tRegion\tDice\tSensitivity\tPPV")
@@ -185,6 +186,7 @@ def latex_results(sub):
         print("{} & {:0.3f} & {:0.3f} & {:0.3f} \\\\".format(i+1, dices[0], dices[1], dices[2]))
     print("\\textbfmean & ${:0.3f} \\pm {:0.3f}$ & ${:0.3f} \\pm {:0.3f}$ & ${:0.3f} \\pm {:0.3f}$" .format(dice_mean[sub][1], dice_std[sub][1], dice_mean[sub][2], dice_std[sub][2], dice_mean[sub][3], dice_std[sub][3]))
 
-show_results(73)
-#latex_results(73)
+#show_results(73)
+show_results(90)
+latex_results(90)
 #plot_results(73)

@@ -2,6 +2,7 @@ from loadImagesFromDisk import loadImages
 from dataExtractor import DataExtractor
 from fcn_model import createModel
 from inputParser import parse_input
+from normalization import normalize_scans
 from metrics import dice 
 import numpy as np
 import time
@@ -59,6 +60,8 @@ model.summary()
 print("Trainable weights", model.trainable_weights)
 
 (images, labels, image_dimensions) = loadImages(data_dir, use_N4Correction = use_N4Correction)
+print("Normalizing scans")
+images = normalize_scans(images, 4)
 #(val_images, val_labels, val_dimensions) = loadImages(validation_dir, use_N4Correction = use_N4Correction)
 
 assert(image_dimensions == [image.shape for image in images])
